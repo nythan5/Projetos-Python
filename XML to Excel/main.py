@@ -7,58 +7,66 @@ from tkinter import ttk
 
 
 # Variáveis globais
-caminho_diretorio_NF = ""
-caminho_diretorio_Excel = ""
+caminho_diretorio_nf = ""
+caminho_diretorio_excel = ""
 valores = []
 
 # Funções
 def pegar_infos(nome_arquivo,valores):
-    with open (f'{caminho_diretorio_NF}/{nome_arquivo}',"rb") as arquivo_xml:
-        dict_arquivo = xmltodict.parse(arquivo_xml)                
-        if "NFe" in dict_arquivo:
+    with open (f'{caminho_diretorio_nf}/{nome_arquivo}',"rb") as arquivo_xml:
+        dict_arquivo = xmltodict.parse(arquivo_xml)  
+
+        if "soap12:Envelope" in dict_arquivo:
+            infos_nf = dict_arquivo["soap12:Envelope"]["soap12:Body"]["nfeDadosMsg"]["enviNFe"]["NFe"]["infNFe"]
+        
+        elif "NFe" in dict_arquivo:
             infos_nf = dict_arquivo["NFe"]["infNFe"]
+        
         else:
             infos_nf = dict_arquivo["nfeProc"]["NFe"]["infNFe"]  
 
         numero_nota = infos_nf["@Id"]
         emissor_nota = infos_nf["emit"]["xNome"]
-        CNPJ_emissor = infos_nf["emit"]["CNPJ"]
-        UF_emissor = infos_nf["emit"]["enderEmit"]["UF"]
-        nome_cliente = infos_nf["dest"]["xNome"]
+        cnpj_emissor = infos_nf["emit"]["CNPJ"]
+        uf_emissor = infos_nf["emit"]["enderEmit"]["UF"]
+        try:
+            nome_cliente = infos_nf["dest"]["xNome"]
+        except KeyError:
+            nome_cliente = "Cliente não encontrado"
         valor_nota = infos_nf["total"]["ICMSTot"]["vNF"]
-        ICMS = infos_nf["total"]["ICMSTot"]["vICMS"]
-        PIS = infos_nf["total"]["ICMSTot"]["vPIS"]
-        COFINS = infos_nf["total"]["ICMSTot"]["vCOFINS"]
-        IPI = infos_nf["total"]["ICMSTot"]["vIPI"]
+        icms = infos_nf["total"]["ICMSTot"]["vICMS"]
+        pis = infos_nf["total"]["ICMSTot"]["vPIS"]
+        cofins = infos_nf["total"]["ICMSTot"]["vCOFINS"]
+        ipi = infos_nf["total"]["ICMSTot"]["vIPI"]
             
-        valores.append([numero_nota,emissor_nota,CNPJ_emissor,UF_emissor,nome_cliente,valor_nota,ICMS,PIS,COFINS,IPI])
+        valores.append([numero_nota,emissor_nota,cnpj_emissor,uf_emissor,nome_cliente,valor_nota,icms,pis,cofins,ipi])
 
-def processar_caminho_XML():
-    global caminho_diretorio_NF
-    caminho_XML = diretorio_XML.get().strip().replace('"', '')
-    caminho_diretorio_NF = caminho_XML
-    print(caminho_diretorio_NF)
+def processar_caminho_xml():
+    global caminho_diretorio_nf
+    caminho_xml = diretorio_xml.get().strip().replace('"', '')
+    caminho_diretorio_nf = caminho_xml
+    #print(caminho_diretorio_nf)
 
-def processar_caminho_Excel():
-    global caminho_diretorio_Excel
-    caminho_Excel = diretorio_Excel.get().strip().replace('"', '')
-    caminho_diretorio_Excel = caminho_Excel
-    print(caminho_diretorio_Excel)
+def processar_caminho_excel():
+    global caminho_diretorio_excel
+    caminho_excel = diretorio_excel.get().strip().replace('"', '')
+    caminho_diretorio_excel = caminho_excel
+    #print(caminho_diretorio_excel)
 
-def processar_Tudo():
-    processar_caminho_XML()
-    processar_caminho_Excel()
+def processar_tudo():
+    processar_caminho_xml()
+    processar_caminho_excel()
 
-    for arquivo in os.listdir(caminho_diretorio_NF):
+    for arquivo in os.listdir(caminho_diretorio_nf):
         pegar_infos(arquivo, valores)
    
     colunas = ["numero_nota","emissor_nota","CNPJ_emissor","UF_emissor","nome_cliente","valor_nota","ICMS","PIS","COFINS","IPI"]
     Tabela = pd.DataFrame(columns=colunas, data=valores) 
-    nome_arquivo_excel = os.path.join(caminho_diretorio_Excel, "NotasFiscais.xlsx")
+    nome_arquivo_excel = os.path.join(caminho_diretorio_excel, "NotasFiscais.xlsx")
     Tabela.to_excel(nome_arquivo_excel, index=False)
     messagebox.showinfo("Concluído","Processamento foi finalizado com sucesso!")
-    diretorio_XML.delete(0,END)
-    diretorio_Excel.delete(0,END)
+    diretorio_xml.delete(0,END)
+    diretorio_excel.delete(0,END)
     
 
 
@@ -67,7 +75,7 @@ def processar_Tudo():
 janela = Tk()
 janela.title("XML to Excel")
 janela.geometry("340x160")
-janela.iconbitmap('C:/Users/gnd20/Desktop/Projetos Python/XML to Excel/line_chart_file_icon_256235.ico')
+janela.iconbitmap('C:/Users/Gabriel Nathan Dias/Desktop/Python/Projetos-Python/XML to Excel/line_chart_file_icon_256235.ico')
 janela.configure(bg= "white")
 
 
@@ -87,15 +95,15 @@ style.configure("TEntry",background = "white",bordercolor = "white",foreground=[
 
 Texto_Orientacao1 = ttk.Label(janela, text= "Diretório do XML:").place(x=20, y=10, width=300, height=25)
 
-diretorio_XML = ttk.Entry(janela)
-diretorio_XML.place(x=20, y=35, width=300, height=25)
+diretorio_xml = ttk.Entry(janela)
+diretorio_xml.place(x=20, y=35, width=300, height=25)
 
 Texto_Orientacao2 = ttk.Label(janela, text= "Diretório para Salvar o Excel: ").place(x=20, y=60, width=300, height=25)
 
-diretorio_Excel = ttk.Entry(janela)
-diretorio_Excel.place(x=20, y=85, width=300, height=25)
+diretorio_excel = ttk.Entry(janela)
+diretorio_excel.place(x=20, y=85, width=300, height=25)
 
-botao_processar = ttk.Button(janela, text="Processar", command=processar_Tudo)
+botao_processar = ttk.Button(janela, text="Processar", command=processar_tudo)
 botao_processar.place(x=80, y=120, width=180, height=35)
 
 
