@@ -6,4 +6,4 @@ import time
 service = Service(ChromeDriverManager().install())
 navegador = webdriver.Chrome(service=service)
 navegador.get("https://web.whatsapp.com")
-time.sleep(10)
+time.sleep(30)
