@@ -6,14 +6,17 @@ import time
 import pandas as pd
 from datetime import datetime
 
-"""""
 # Preparando o navegador para entrar no site
 service = Service(ChromeDriverManager().install())
 navegador = webdriver.Chrome(service=service)
 navegador.get("https://jdsn-pft.deere.com/pft/servlet/com.deere.u90242.premiumfreight.view.servlets.PremiumFreightServlet")
 
 # Aguarda 1minuto para fazer login
-time.sleep(60)"""
+time.sleep(60)
+
+# Clicando em Search
+navegador.find_element('xpath','//*[@id="left_navigation"]/ul/li[4]/a').click()
+time.sleep(2)
 
 caminho_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\PFR1.xls"
 
@@ -61,9 +64,10 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     navegador.find_element('xpath','//*[@id="pfNumber"]').send_keys(pfr)
     time.sleep(2)
     navegador.find_element('xpath','//*[@id="content_center"]/table/tbody/tr[10]/td/center/a[1]').click()
+    time.sleep(2)
 
     # CLicando na PRF localizada
     navegador.find_element('xpath','//*[@id="table01"]/tbody/tr/td[1]/a').click()
+    time.sleep(2)
 
-    
     
