@@ -40,15 +40,19 @@ for index, row in planilha_carregada.iterrows():
     # Adicione o dicionário à lista
     lista_de_dicionarios.append(dicionario)
 
-# Exiba a lista de dicionários
-#for item in lista_de_dicionarios:
-#    print(item,"\n")
 
-primeira_dict = lista_de_dicionarios[0]
-previsao_entrega = primeira_dict['Previsão de Entrega']
 
-data_hora_entrega = datetime.fromtimestamp(previsao_entrega.timestamp())
+dicionario = lista_de_dicionarios[0]
 
-hora = data_hora_entrega.strftime('%M')
+pfr = dicionario['PFR']
+codigo_transportadora = dicionario['Codigo_Transportadora']
+tipo_numero_referencia = "Carrier Pro"
+cte = dicionario['CT-e']
+valor_frete = dicionario['Valor do Frete']
+currency = "BRL"
+peso = dicionario['Peso']
+measure = "KG"
 
-print(f"Previsão de Entrega prevista para: {hora}")
+print(peso)
+
+

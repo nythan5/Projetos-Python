@@ -5,6 +5,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager 
 import time
 
+
 service = Service(ChromeDriverManager().install())
 navegador = webdriver.Chrome(service=service)
 navegador.get("https://jdsn-pft.deere.com/pft/servlet/com.deere.u90242.premiumfreight.view.servlets.PremiumFreightServlet")
@@ -26,3 +27,4 @@ navegador.find_element('xpath','//*[@id="table01"]/tbody/tr/td[1]/a').click()
 time.sleep(3000000)
 
 # Digitando informações em cada campo 
+
