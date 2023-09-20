@@ -1,7 +1,9 @@
 import pandas as pd
+from datetime import datetime
+
 
 # Exemplo de uso da função:
-caminho_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\PFR.xls"
+caminho_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\PFR1.xls"
 
 def carregar_planilha(caminho_planilha):
     # Remove espaços em branco e aspas do caminho da planilha fornecido pelo usuário
@@ -39,5 +41,14 @@ for index, row in planilha_carregada.iterrows():
     lista_de_dicionarios.append(dicionario)
 
 # Exiba a lista de dicionários
-for item in lista_de_dicionarios:
-    print(item,"\n")
+#for item in lista_de_dicionarios:
+#    print(item,"\n")
+
+primeira_dict = lista_de_dicionarios[0]
+previsao_entrega = primeira_dict['Previsão de Entrega']
+
+data_hora_entrega = datetime.fromtimestamp(previsao_entrega.timestamp())
+
+hora = data_hora_entrega.strftime('%M')
+
+print(f"Previsão de Entrega prevista para: {hora}")
