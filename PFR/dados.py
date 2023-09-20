@@ -1,45 +1,43 @@
 import pandas as pd
 
 # Exemplo de uso da função:
-caminho_da_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\PFR.xls"
+caminho_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\PFR.xls"
 
-def carregar_planilha(caminho):
-    # Remova espaços em branco e aspas do caminho fornecido pelo usuário
-    caminho = caminho.strip().replace('"', '')
+def carregar_planilha(caminho_planilha):
+    # Remove espaços em branco e aspas do caminho da planilha fornecido pelo usuário
+    caminho_planilha = caminho_planilha.strip().replace('"', '')
+    planilha = pd.read_excel(caminho_planilha)
+    return planilha
+    
 
-    # Tente carregar a planilha
-    try:
-        planilha = pd.read_excel(caminho)
-        return planilha
-    except Exception as e:
-        print(f"Erro ao carregar a planilha: {str(e)}")
-        return None
-
-
-planilha_carregada = carregar_planilha(caminho_da_planilha)
+# Validação do carregamento da planilha com a função carregar_planilha
+planilha_carregada = carregar_planilha(caminho_planilha)
 
 if planilha_carregada is not None:
-    print(planilha_carregada)
+    print("Planilha carregada com sucesso")
 else:
     print("Falha ao carregar a planilha.")
 
+# Inicialize uma lista vazia para armazenar os dicionários
+lista_de_dicionarios = []
 
-for indice, linha in planilha_carregada.iterrows():
+# Itere pelas linhas da planilha
+for index, row in planilha_carregada.iterrows():
+    dicionario = {
+        'Linha': [index+1],
+        'PFR': row['PFR'],
+        'Transportadora': row['Transportadora'],
+        'Codigo_Transportadora': row['Codigo_Transportadora'],
+        'CT-e': row['CT-e'],
+        'Valor do Frete': row['Valor do Frete'],
+        'Peso': row['Peso'],
+        'Data e Horário da Coleta': row['Data e Horário da Coleta'],
+        'Previsão de Entrega': row['Previsão de Entrega']
+        
+    }
+    # Adicione o dicionário à lista
+    lista_de_dicionarios.append(dicionario)
 
-    # Colunas da planilha 
-    pfr = planilha_carregada['PFR']
-    transportadora = planilha_carregada['Transportadora']
-    cte = planilha_carregada ['CT-e']
-    valor_frete = planilha_carregada ['Valor do Frete']
-    peso = planilha_carregada ['Peso']
-    data_hora_coleta = planilha_carregada ['Data e Horário da Coleta']
-    data_hora_entrega = planilha_carregada ['Previsão de Entrega']
-    
-    # Executar o processo de entrar no site 
-
-
-
-
-
-
-
+# Exiba a lista de dicionários
+for item in lista_de_dicionarios:
+    print(item,"\n")
