@@ -53,6 +53,10 @@ currency = "BRL"
 peso = dicionario['Peso']
 measure = "KG"
 
-print(peso)
 
 
+
+previsao_entrega = dicionario['Previsão de Entrega']
+data_hora_entrega = datetime.fromtimestamp(previsao_entrega.timestamp())
+hora = data_hora_entrega.strftime('%b')
+print(hora)
