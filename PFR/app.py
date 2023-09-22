@@ -165,32 +165,9 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
 
     # Preenchendo o horario
     navegador.find_element(By.NAME,'pendingConfList0.pickupETATime').send_keys(hora_coleta)
-
-
-    """
-    horarios = navegador.find_element(By.NAME,'pendingConfList0.pickupETATime')  # Abrindo a lista de horarios
-    horarios.click()
-    time.sleep(espera_media)
-    opcoes = horarios.find_elements(By.TAG_NAME,'option')  # Salvando a Lista
-
-    # Copiando a lista para uma lista para manter a mesma ordem
-    lista_opcoes_horarios = [opcao.text for opcao in opcoes] # Salva a Lista como Lista com os mesmos indices da page
-
-    # Descobre o index da hora que estava na planilha para poder dar match com a lista de horarios da page
-    index_opcao = 0    
-    if hora_coleta in  lista_opcoes_horarios:
-        print("achou")
-        index_opcao = lista_opcoes_horarios.index(hora_coleta) 
-        print (index_opcao)
-        
-    # Clicando com a seta \/ para selecionar a hora de acordo com o index localizado anteriormente
-    count1 = 0
-    while (count1 < index_opcao):
-        navegador.find_element(By.NAME,'pendingConfList0.pickupETATime').send_keys(Keys.DOWN)
-        count1 += 1"""
-        
-       
-    # Preenchendo Data de Entrega
+      
+      
+   # Preenchendo Data de Entrega
     navegador.find_element('xpath','//*[@id="pendingConfList0.deliveryETADate.dayVal"]').send_keys(dia_entrega)     
     time.sleep(espera_curta)
 
