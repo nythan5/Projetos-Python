@@ -7,17 +7,21 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 import pandas as pd
 from datetime import datetime
+import pytz
+
+
+# Variaveis Globais
+caminho_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\PFR1.xls"
+espera_curta = 0.5
+espera_media = 1.5
+espera_longa = 5
+espera_login = 60
 
 # Preparando o navegador para entrar no site
 service = Service(ChromeDriverManager().install())
 navegador = webdriver.Chrome(service=service)
 navegador.get("https://jdsn-pft.deere.com/pft/servlet/com.deere.u90242.premiumfreight.view.servlets.PremiumFreightServlet")
 
-# Aguarda 1minuto para fazer login
-time.sleep(60)
-
-
-caminho_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\PFR1.xls"
 
 def carregar_planilha(caminho_planilha):
     # Remove espaços em branco e aspas do caminho da planilha fornecido pelo usuário
@@ -43,23 +47,42 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     peso1 = planilha_carregada.loc[i,'Peso'] 
     peso_formatado = "{:.2f}".format(peso1)
     measure = "KG"
+    comments = planilha_carregada.loc[i,'Observações']
 
-    
+    # Obtém o fuso horário do Brasil
+    fuso_horario_brasil = pytz.timezone('America/Sao_Paulo')
+
     data_hora_coleta = planilha_carregada.loc[i,'Data e Horário da Coleta']
-    # Parseando a informação de coleta em variaveis 
-    dia_coleta = datetime.fromtimestamp(data_hora_coleta.timestamp()).strftime('%d')
-    mes_coleta = datetime.fromtimestamp(data_hora_coleta.timestamp()).strftime('%b')
-    ano_coleta = datetime.fromtimestamp(data_hora_coleta.timestamp()).strftime('%Y')
-    hora_coleta = datetime.fromtimestamp(data_hora_coleta.timestamp()).strftime('%H:%M')
 
-    # Parseando a informação de entrega em variaveis 
+    # Converte a data e hora da coleta para o fuso horário do Brasil
+    data_hora_coleta_brasil = data_hora_coleta.replace(tzinfo=fuso_horario_brasil)
+
+    # Parseando as informaçoes de data e hora ajustadas para o fuso horário do Brasil
+    dia_coleta = data_hora_coleta_brasil.strftime('%d')
+    mes_coleta = data_hora_coleta_brasil.strftime('%b')
+    ano_coleta = data_hora_coleta_brasil.strftime('%Y')
+    hora_coleta = data_hora_coleta_brasil.strftime('%I:%M %p')
+
+    if hora_coleta.startswith('0'):
+        hora_coleta = hora_coleta[1:]
+
+    print(hora_coleta)
+
     data_hora_entrega = planilha_carregada.loc[i,'Previsão de Entrega']
-    dia_entrega = datetime.fromtimestamp(data_hora_entrega.timestamp()).strftime('%d')
-    mes_entrega = datetime.fromtimestamp(data_hora_entrega.timestamp()).strftime('%b')
-    ano_entrega = datetime.fromtimestamp(data_hora_entrega.timestamp()).strftime('%Y')
-    hora_entrega = datetime.fromtimestamp(data_hora_entrega.timestamp()).strftime('%H:%M')
 
+    # Converte a data e hora da coleta para o fuso horário do Brasil
+    data_hora_entrega_brasil = data_hora_entrega.replace(tzinfo=fuso_horario_brasil)
 
+    # Parseando as informaçoes de data e hora ajustadas para o fuso horário do Brasil
+    dia_entrega = data_hora_entrega_brasil.strftime('%d')
+    mes_entrega = data_hora_entrega_brasil.strftime('%b')
+    ano_entrega = data_hora_entrega_brasil.strftime('%Y')
+    hora_entrega = data_hora_entrega_brasil.strftime('%I:%M %p')
+
+    if hora_entrega.startswith('0'):
+        hora_entrega = hora_entrega[1:]
+
+  
     # Descobrindo a quantidade de Looping da seleção da transportadora
     match codigo_transportadora:
         case 372052: # ARMANI
@@ -71,22 +94,24 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
         case 316937: # TW
             loop_transportadora = 13
         
+    # Aguarda 1minuto para fazer login
+    time.sleep(espera_login)
 
     # Clicando em Search
     navegador.find_element('xpath','//*[@id="left_navigation"]/ul/li[4]/a').click()
-    time.sleep(5)
+    time.sleep(espera_longa)
 
     # Preenchendo as informações em cada campo
 
     # Campo PFR e search 
     navegador.find_element('xpath','//*[@id="pfNumber"]').send_keys(pfr)
-    time.sleep(2)
+    time.sleep(espera_media)
     navegador.find_element('xpath','//*[@id="content_center"]/table/tbody/tr[10]/td/center/a[1]').click()
-    time.sleep(5)
+    time.sleep(espera_longa)
 
     # CLicando na PRF localizada
     navegador.find_element('xpath','//*[@id="table01"]/tbody/tr/td[1]/a').click()
-    time.sleep(5)
+    time.sleep(espera_longa)
 
     # Buscando o Carrier na lista
     navegador.find_element('xpath','//*[@id="pendingConfList0.carrier"]').click()
@@ -94,44 +119,92 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     # Clicando com a seta \/ para selecionar a transportadora de acordo com o codigo
     count = 0
     while (count < loop_transportadora):
-        navegador.find_element('xpath','//*[@id="pendingConfList0.carrier"]').send_keys(Keys.UP)
+        navegador.find_element('xpath','//*[@id="pendingConfList0.carrier"]').send_keys(Keys.DOWN)
         count += 1
 
-    time.sleep(1)
+    time.sleep(espera_media)
 
     # Preenchendo o Tipo de numero de referencia
     navegador.find_element('xpath','//*[@id="pendingConfList0.referenceType"]').send_keys(tipo_numero_referencia)
-    time.sleep(1)
+    time.sleep(espera_curta)
 
     # Preenchendo o CTe
     navegador.find_element('xpath','//*[@id="ConfirmTD_0"]/fieldset/table/tbody/tr[4]/td[2]/input').send_keys(cte)
-    time.sleep(1)
+    time.sleep(espera_curta)
 
     # Preenchendo o Valor do Frete
     navegador.find_element('xpath','//*[@id="pendingConfList0.invoiceAmount"]').send_keys(valor_frete)
-    time.sleep(1)
+    time.sleep(espera_curta)
 
     # Preenchendo o currency
     navegador.find_element('xpath','//*[@id="pendingConfList0.currencyCode"]').send_keys(currency)
-    time.sleep(1)
+    time.sleep(espera_curta)
     
     # Preenchendo o peso
     navegador.find_element('xpath','//*[@id="ConfirmTD_0"]/fieldset/table/tbody/tr[7]/td[2]/input').send_keys(peso_formatado)
-    time.sleep(1)
+    time.sleep(espera_curta)
     
     # Preenchendo o measure
     navegador.find_element('xpath','//*[@id="pendingConfList0.unitOfMeasure"]').send_keys(measure)
-    time.sleep(1)
+    time.sleep(espera_curta)
     
     # Preenchendo Data de Coleta
     navegador.find_element('xpath','//*[@id="pendingConfList0.pickupETADate.dayVal"]').send_keys(dia_coleta)
-    time.sleep(0.5)
+    time.sleep(espera_curta)
     
-    navegador.find_element('xpath','//*[@id="ConfirmTD_0"]/fieldset/table/tbody/tr[11]/td[2]/div/font/select').send_keys(mes_coleta)
-    time.sleep(0.5)
+    navegador.find_element(By.NAME,'pendingConfList0.pickupETADate.monVal').send_keys(mes_coleta)
+    time.sleep(espera_curta)
 
     navegador.find_element(By.NAME,'pendingConfList0.pickupETADate.yearVal').send_keys(ano_coleta)     
-    time.sleep(0.5)    
+    time.sleep(espera_curta)    
 
-    time.sleep(900000)
-    
+    # Preenchendo o horario
+    horarios = navegador.find_element(By.NAME,'pendingConfList0.pickupETATime')  # Abrindo a lista
+    horarios.click()
+    time.sleep(espera_media)
+    opcoes = horarios.find_elements(By.TAG_NAME,'option')  # Salvando a Lista
+
+    #Copiando a lista para uma lista para manter a mesma ordem
+    lista_opcoes_horarios = [opcao.text for opcao in opcoes]
+
+    index_opcao = 0    
+    if hora_coleta in  lista_opcoes_horarios:
+        print("achou")
+        index_opcao = lista_opcoes_horarios.index(hora_coleta) 
+        print (index_opcao)
+        
+
+    count1 = 0
+    while (count1 < index_opcao):
+        navegador.find_element(By.NAME,'pendingConfList0.pickupETATime').send_keys(Keys.DOWN)
+        count1 += 1
+        
+
+       
+    # Preenchendo Data de Entrega
+    navegador.find_element('xpath','//*[@id="pendingConfList0.deliveryETADate.dayVal"]').send_keys(dia_entrega)     
+    time.sleep(espera_curta)
+
+    navegador.find_element(By.NAME,'pendingConfList0.deliveryETADate.monVal').send_keys(mes_entrega)     
+    time.sleep(espera_curta)
+
+    navegador.find_element(By.NAME,'pendingConfList0.deliveryETADate.yearVal').send_keys(ano_entrega)     
+    time.sleep(espera_curta)
+
+    navegador.find_element(By.NAME,'pendingConfList0.deliveryETATime').click()
+    time.sleep(espera_curta)
+    navegador.find_element(By.NAME,'pendingConfList0.deliveryETATime').send_keys(hora_entrega)     
+    time.sleep(espera_curta)
+
+    # Escrevendo os Comments 
+    navegador.find_element(By.NAME,'pendingConfList0.comments').send_keys(comments)
+    time.sleep(espera_curta)
+
+    time.sleep(90000)
+
+    # Clicando no botão de Submit
+    #//*[@id="content_center"]/div[2]/div[4]/div/a[3]
+
+
+   
+
