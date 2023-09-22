@@ -93,7 +93,9 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
             loop_transportadora = 26
         case 316937: # TW
             loop_transportadora = 13
-        
+        case 335060: # Piex
+            loop_transportadora = 16
+                    
     # Aguarda 1minuto para fazer login
     time.sleep(espera_login)
 
@@ -179,7 +181,6 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
         navegador.find_element(By.NAME,'pendingConfList0.pickupETATime').send_keys(Keys.DOWN)
         count1 += 1
         
-
        
     # Preenchendo Data de Entrega
     navegador.find_element('xpath','//*[@id="pendingConfList0.deliveryETADate.dayVal"]').send_keys(dia_entrega)     
@@ -200,6 +201,7 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     navegador.find_element(By.NAME,'pendingConfList0.comments').send_keys(comments)
     time.sleep(espera_curta)
 
+    print("finalizada")
     time.sleep(90000)
 
     # Clicando no botão de Submit
