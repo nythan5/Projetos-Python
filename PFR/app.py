@@ -36,8 +36,8 @@ if planilha_carregada is not None:
 else:
     print("Falha ao carregar a planilha.")
 
-# Laço para que ele realize cada ciclo de acordo com a quantidade de linhas da Planilha
 
+# Laço para que ele realize cada ciclo de acordo com a quantidade de linhas da Planilha
 for i , pfr in enumerate (planilha_carregada["PFR"]):
     codigo_transportadora = planilha_carregada.loc[i,'Codigo_Transportadora']
     tipo_numero_referencia = "Carrier Pro"
@@ -52,6 +52,7 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     # Obtém o fuso horário do Brasil
     fuso_horario_brasil = pytz.timezone('America/Sao_Paulo')
 
+    # Obtém o campo Data e Hora de Coleta da Planilha
     data_hora_coleta = planilha_carregada.loc[i,'Data e Horário da Coleta']
 
     # Converte a data e hora da coleta para o fuso horário do Brasil
@@ -63,11 +64,10 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     ano_coleta = data_hora_coleta_brasil.strftime('%Y')
     hora_coleta = data_hora_coleta_brasil.strftime('%I:%M %p')
 
-    if hora_coleta.startswith('0'):
+    if hora_coleta.startswith('0'):  # Se a hora esta 01:00 ele coloca 1:00
         hora_coleta = hora_coleta[1:]
 
-    print(hora_coleta)
-
+    # Obtém o campo Data e Hora de entrega da Planilha
     data_hora_entrega = planilha_carregada.loc[i,'Previsão de Entrega']
 
     # Converte a data e hora da coleta para o fuso horário do Brasil
@@ -79,7 +79,7 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     ano_entrega = data_hora_entrega_brasil.strftime('%Y')
     hora_entrega = data_hora_entrega_brasil.strftime('%I:%M %p')
 
-    if hora_entrega.startswith('0'):
+    if hora_entrega.startswith('0'):  # Se a hora esta 01:00 ele coloca 1:00
         hora_entrega = hora_entrega[1:]
 
   
@@ -103,9 +103,12 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     navegador.find_element('xpath','//*[@id="left_navigation"]/ul/li[4]/a').click()
     time.sleep(espera_longa)
 
-    # Preenchendo as informações em cada campo
 
-    # Campo PFR e search 
+    """     Preenchendo as informações 
+                   em cada campo          """
+
+
+    # Campo PFR e depois clica em search 
     navegador.find_element('xpath','//*[@id="pfNumber"]').send_keys(pfr)
     time.sleep(espera_media)
     navegador.find_element('xpath','//*[@id="content_center"]/table/tbody/tr[10]/td/center/a[1]').click()
@@ -161,25 +164,30 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     time.sleep(espera_curta)    
 
     # Preenchendo o horario
-    horarios = navegador.find_element(By.NAME,'pendingConfList0.pickupETATime')  # Abrindo a lista
+    navegador.find_element(By.NAME,'pendingConfList0.pickupETATime').send_keys(hora_coleta)
+
+
+    """
+    horarios = navegador.find_element(By.NAME,'pendingConfList0.pickupETATime')  # Abrindo a lista de horarios
     horarios.click()
     time.sleep(espera_media)
     opcoes = horarios.find_elements(By.TAG_NAME,'option')  # Salvando a Lista
 
-    #Copiando a lista para uma lista para manter a mesma ordem
-    lista_opcoes_horarios = [opcao.text for opcao in opcoes]
+    # Copiando a lista para uma lista para manter a mesma ordem
+    lista_opcoes_horarios = [opcao.text for opcao in opcoes] # Salva a Lista como Lista com os mesmos indices da page
 
+    # Descobre o index da hora que estava na planilha para poder dar match com a lista de horarios da page
     index_opcao = 0    
     if hora_coleta in  lista_opcoes_horarios:
         print("achou")
         index_opcao = lista_opcoes_horarios.index(hora_coleta) 
         print (index_opcao)
         
-
+    # Clicando com a seta \/ para selecionar a hora de acordo com o index localizado anteriormente
     count1 = 0
     while (count1 < index_opcao):
         navegador.find_element(By.NAME,'pendingConfList0.pickupETATime').send_keys(Keys.DOWN)
-        count1 += 1
+        count1 += 1"""
         
        
     # Preenchendo Data de Entrega
