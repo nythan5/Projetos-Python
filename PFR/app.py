@@ -20,7 +20,8 @@ espera_login = 60
 # Preparando o navegador para entrar no site
 service = Service(ChromeDriverManager().install())
 navegador = webdriver.Chrome(service=service)
-navegador.get("https://jdsn-pft.deere.com/pft/servlet/com.deere.u90242.premiumfreight.view.servlets.PremiumFreightServlet")
+LINK = "https://jdsn-pft.deere.com/pft/servlet/com.deere.u90242.premiumfreight.view.servlets.PremiumFreightServlet"
+navegador.get(LINK)
 
 
 def carregar_planilha(caminho_planilha):
@@ -165,8 +166,7 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
 
     # Preenchendo o horario
     navegador.find_element(By.NAME,'pendingConfList0.pickupETATime').send_keys(hora_coleta)
-      
-      
+     
    # Preenchendo Data de Entrega
     navegador.find_element('xpath','//*[@id="pendingConfList0.deliveryETADate.dayVal"]').send_keys(dia_entrega)     
     time.sleep(espera_curta)
