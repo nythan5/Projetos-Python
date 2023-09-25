@@ -7,6 +7,8 @@ from automacao import realizar_automacao
 import sys
 
 
+
+
 # Classe TelaApp para a aplicação tkinter
 class TelaApp:
     # Método construtor, inicializa a janela principal e outros elementos
@@ -53,6 +55,7 @@ class TelaApp:
         print("Parando...")
         self.executar_codigo = False  # Define a variável de controle como False
         print(self.executar_codigo)
+        sys.exit(0)
         
         
 
