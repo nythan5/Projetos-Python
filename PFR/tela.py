@@ -4,6 +4,7 @@ from tkinter import ttk  # Importa ttk para estilos de widgets
 import threading  # Importa threading para execução de código em segundo plano
 import time  # Importa time para controlar o tempo
 from automacao import realizar_automacao
+import sys
 
 
 # Classe TelaApp para a aplicação tkinter
@@ -39,7 +40,7 @@ class TelaApp:
             # Coloque aqui o seu código a ser executado em segundo plano
             realizar_automacao()
             time.sleep(1)
-
+    
 
     # Método para iniciar a execução do código em segundo plano
     def iniciar_codigo(self):
@@ -49,8 +50,10 @@ class TelaApp:
         
     # Método para parar a execução do código em segundo plano
     def parar_codigo(self):
+        print("Parando...")
         self.executar_codigo = False  # Define a variável de controle como False
         print(self.executar_codigo)
+        
         
 
         

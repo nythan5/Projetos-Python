@@ -43,7 +43,7 @@ def realizar_automacao():
     else:
         print("Falha ao carregar a planilha.")
 
-    # Aguarda 1 minuto para fazer voltar para a clicar no search
+    # Aguarda para digitar as credenciais do login
     time.sleep(espera_longa)
     navegador.find_element('xpath', '//*[@id="okta-signin-username"]').send_keys(login)
     time.sleep(0.5)
