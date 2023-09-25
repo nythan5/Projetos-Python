@@ -8,14 +8,20 @@ import time
 import pandas as pd
 from datetime import datetime
 import pytz
+from pynput import mouse 
 
 
 # Variaveis Globais
-caminho_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\PFR1.xls"
+caminho_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\Relatorio mensal PFR-RPA.xls"
 espera_curta = 0.5
 espera_media = 1.5
-espera_longa = 5
-espera_login = 60
+espera_longa = 7
+espera_login = 30
+login = "YFAM2IY"
+senha = "j918200_Mm123"
+lista_pfr_preenchidas = []
+
+
 
 # Preparando o navegador para entrar no site
 service = Service(ChromeDriverManager().install())
@@ -23,6 +29,9 @@ navegador = webdriver.Chrome(service=service)
 LINK = "https://jdsn-pft.deere.com/pft/servlet/com.deere.u90242.premiumfreight.view.servlets.PremiumFreightServlet"
 navegador.get(LINK)
 
+
+def bloquear_scroll(x, y, dx, dy):
+    return False  # Retorna False para bloquear o scroll
 
 def carregar_planilha(caminho_planilha):
     # Remove espaços em branco e aspas do caminho da planilha fornecido pelo usuário
@@ -37,6 +46,16 @@ if planilha_carregada is not None:
 else:
     print("Falha ao carregar a planilha.")
 
+# Aguarda 1 minuto para fazer voltar para a clicar no search
+time.sleep(espera_longa)
+navegador.find_element('xpath','//*[@id="okta-signin-username"]').send_keys(login)
+time.sleep(0.5)
+navegador.find_element('xpath','//*[@id="okta-signin-password"]').send_keys(senha)
+time.sleep(0.5)
+navegador.find_element('xpath','//*[@id="okta-signin-submit"]').click()
+time.sleep(espera_longa)
+navegador.find_element('xpath','//*[@id="form66"]/div[1]/div[2]/a').click()
+time.sleep(espera_login)
 
 # Laço para que ele realize cada ciclo de acordo com a quantidade de linhas da Planilha
 for i , pfr in enumerate (planilha_carregada["PFR"]):
@@ -88,17 +107,22 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     match codigo_transportadora:
         case 372052: # ARMANI
             loop_transportadora = 31
+            
         case 375317: # VF
             loop_transportadora = 37
+            
         case 361822: # MODULAR
             loop_transportadora = 26
+            
         case 316937: # TW
             loop_transportadora = 13
+            
         case 335060: # Piex
             loop_transportadora = 16
+            
                     
-    # Aguarda 1minuto para fazer login
-    time.sleep(espera_login)
+    # Aguarda 5 segundos para fazer voltar para a clicar no search
+    time.sleep(espera_longa)
 
     # Clicando em Search
     navegador.find_element('xpath','//*[@id="left_navigation"]/ul/li[4]/a').click()
@@ -119,9 +143,15 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     navegador.find_element('xpath','//*[@id="table01"]/tbody/tr/td[1]/a').click()
     time.sleep(espera_longa)
 
+    # Bloqueando o Scroll do mouse para evitar erro
+
+    listener_mouse = mouse.Listener(on_scroll=bloquear_scroll)
+    listener_mouse.start()  # Inicia o ouvinte do mouse para travar o scroll caso acionado
+
+
     # Buscando o Carrier na lista
     navegador.find_element('xpath','//*[@id="pendingConfList0.carrier"]').click()
-
+    
     # Clicando com a seta \/ para selecionar a transportadora de acordo com o codigo
     count = 0
     while (count < loop_transportadora):
@@ -129,6 +159,8 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
         count += 1
 
     time.sleep(espera_media)
+
+    listener_mouse.stop() # Finaliza o ouvinte do mouse para liberar o scroll
 
     # Preenchendo o Tipo de numero de referencia
     navegador.find_element('xpath','//*[@id="pendingConfList0.referenceType"]').send_keys(tipo_numero_referencia)
@@ -186,12 +218,14 @@ for i , pfr in enumerate (planilha_carregada["PFR"]):
     navegador.find_element(By.NAME,'pendingConfList0.comments').send_keys(comments)
     time.sleep(espera_curta)
 
-    print("finalizada")
-    time.sleep(90000)
-
+    lista_pfr_preenchidas.append(pfr)
+    print(f"PRF's preenchidas no site: {lista_pfr_preenchidas}")
+    print("Quantidade de PRF's preenchidas",len(lista_pfr_preenchidas))
+    
     # Clicando no botão de Submit
-    #//*[@id="content_center"]/div[2]/div[4]/div/a[3]
+    navegador.find_element('xpath','//*[@id="content_center"]/div[2]/div[4]/div/a[3]').click()
 
 
    
 
+print("Finalizou")
