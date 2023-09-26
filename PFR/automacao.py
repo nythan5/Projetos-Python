@@ -7,6 +7,7 @@ import time
 import pandas as pd
 import pytz
 from pynput import mouse
+import math
 
 # Variáveis Globais
 caminho_planilha = r"C:\Users\Gabriel Nathan Dias\Desktop\Relatorio mensal PFR-RPA.xls"
@@ -64,7 +65,12 @@ def realizar_automacao():
         peso1 = planilha_carregada.loc[i,'Peso'] 
         peso_formatado = "{:.2f}".format(peso1)
         measure = "KG"
-        comments = planilha_carregada.loc[i,'Observações']
+        comments = str(planilha_carregada.loc[i,'Observações'])
+        if not comments:
+            comments = "-"
+        
+            
+        
 
         # Obtém o fuso horário do Brasil
         fuso_horario_brasil = pytz.timezone('America/Sao_Paulo')
@@ -89,6 +95,7 @@ def realizar_automacao():
 
         # Converte a data e hora da coleta para o fuso horário do Brasil
         data_hora_entrega_brasil = data_hora_entrega.replace(tzinfo=fuso_horario_brasil)
+        
 
         # Parseando as informaçoes de data e hora ajustadas para o fuso horário do Brasil
         dia_entrega = data_hora_entrega_brasil.strftime('%d')
@@ -101,6 +108,7 @@ def realizar_automacao():
 
     
         # Descobrindo a quantidade de Looping da seleção da transportadora
+        loop_transportadora = 0
         match codigo_transportadora:
             case 372052: # ARMANI
                 loop_transportadora = 31

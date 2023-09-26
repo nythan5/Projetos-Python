@@ -3,9 +3,9 @@ import tkinter as tk  # Importa a biblioteca tkinter para criar a interface grá
 from tkinter import ttk  # Importa ttk para estilos de widgets
 import threading  # Importa threading para execução de código em segundo plano
 import time  # Importa time para controlar o tempo
-from automacao import realizar_automacao
+from automacao import realizar_automacao 
 import sys
-
+from automacao import lista_pfr_preenchidas
 
 
 
@@ -25,22 +25,27 @@ class TelaApp:
                              foreground="black", background="white", borderwidth=0)
 
         # Criação do botão "Iniciar" e associação com o método iniciar_codigo
-        self.botao_iniciar = ttk.Button(self.root, text="Iniciar Código", command=self.iniciar_codigo)
+        self.botao_iniciar = ttk.Button(self.root, text="Iniciar Aplicação", command=self.iniciar_codigo)
         self.botao_iniciar.pack()  # Empacota o botão na janela
 
         # Criação do botão "Parar" e associação com o método parar_codigo
-        self.botao_parar = ttk.Button(self.root, text="Parar Código", command=self.parar_codigo)
-        self.botao_parar.pack()  # Empacota o botão na janela
+        #self.botao_parar = ttk.Button(self.root, text="Parar Código", command=self.parar_codigo)
+        #self.botao_parar.pack()  # Empacota o botão na janela
+
+         # Botão para usar o valor inserido na caixa de entrada numérica
+        self.rotulo_quantidade = tk.Label(self.root, text=f"PF's preenchidas: {len(lista_pfr_preenchidas)}")
+        self.rotulo_quantidade.pack()
 
         # Variável de controle para a execução do código
         self.executar_codigo = False
+        
 
     # Método que contém o código a ser executado em segundo plano
     def codigo_a_executar(self):
         while self.executar_codigo:
             print("Executando o código...")
-            # Coloque aqui o seu código a ser executado em segundo plano
-            realizar_automacao()
+            # Coloque aqui o seu código a ser executado em segundo plano                      
+            realizar_automacao()            
             time.sleep(1)
     
 
@@ -52,17 +57,17 @@ class TelaApp:
         
     # Método para parar a execução do código em segundo plano
     def parar_codigo(self):
-        print("Parando...")
+        print("Parando...")                
         self.executar_codigo = False  # Define a variável de controle como False
         print(self.executar_codigo)
         sys.exit(0)
         
-        
 
-        
+               
 
 # Verifica se o arquivo está sendo executado como o programa principal
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     janela = tk.Tk()  # Cria a janela principal do tkinter
+    print("tamanho da lista",len(lista_pfr_preenchidas))
     app = TelaApp(janela)  # Cria uma instância da classe TelaApp passando a janela como parâmetro
-    janela.mainloop()  # Inicia o loop principal do tkinter para exibir a interface gráfica
+    janela.mainloop()  # Inicia o loop principal do tkinter para exibir a interface gráfica"""
