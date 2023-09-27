@@ -66,8 +66,8 @@ class TelaApp:
                
 
 # Verifica se o arquivo está sendo executado como o programa principal
-"""if __name__ == "__main__":
+if __name__ == "__main__":
     janela = tk.Tk()  # Cria a janela principal do tkinter
     print("tamanho da lista",len(lista_pfr_preenchidas))
     app = TelaApp(janela)  # Cria uma instância da classe TelaApp passando a janela como parâmetro
-    janela.mainloop()  # Inicia o loop principal do tkinter para exibir a interface gráfica"""
+    janela.mainloop()  # Inicia o loop principal do tkinter para exibir a interface gráfica
