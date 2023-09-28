@@ -13,11 +13,10 @@ from pynput import mouse
 import math
 
 
-
 class AutomacaoPfr:
     def __init__(self):
         # Variaveis Globais
-        self.caminho_planilha = r"C:\Users\Gabriel Nathan Dias\OneDrive - Grupo Mirassol\RPA\PFR\Relatorio mensal PFR-RPA.xls"
+        self.caminho_planilha = r"C:\Users\Gabriel Nathan Dias\OneDrive - Grupo Mirassol\RPA\PFR\Relatorio mensal PFR-RPA.xlsx"
 
         # Variaveis de Login
         self.login = "YFAM2IY"
@@ -58,16 +57,25 @@ class AutomacaoPfr:
         self.ano_entrega = ""
         self.hora_entrega = ""
 
+    def set_callback(self, callback):
+        self.callback = callback
+
+    def add_to_list_pfr_preenchidas(self, pfr):
+        self.lista_pfr_preenchidas.append(pfr)
+        if self.callback:
+            self.callback(pfr)
+
     def bloquear_scroll(self, x, y, dx, dy):
         return False
 
-    def carregar_planilha(self, caminho_planilha):
+    def carregar_planilha(self):
         try:
-            caminho_planilha = caminho_planilha.strip().replace('"', '')
+            caminho_planilha = self.caminho_planilha.strip().replace('"', '')
             planilha = pd.read_excel(caminho_planilha)
-            return planilha
+            total_linhas = len(planilha)
+            return planilha, total_linhas
         except FileNotFoundError:
-            print(f"Arquivo não encontrado no caminho: {caminho_planilha}")
+            print(f"Arquivo não encontrado no caminho: {self.caminho_planilha}")
             return None
 
     def iniciar_navegador(self):
@@ -91,7 +99,6 @@ class AutomacaoPfr:
         except (ConnectionRefusedError, http.client.RemoteDisconnected):
             print("Aplicação Encerrada")
 
-
     def fechar_navegador(self):
         if self.navegador:
             self.navegador.quit()
@@ -103,7 +110,7 @@ class AutomacaoPfr:
 
     def iniciar_automacao(self):
         # Processando os dados da planilha
-        planilha_carregada = self.carregar_planilha(self.caminho_planilha)
+        planilha_carregada = self.carregar_planilha()[0]
 
         if planilha_carregada is not None:
             print("Planilha carregada !")
@@ -121,6 +128,9 @@ class AutomacaoPfr:
             self.comments = str(planilha_carregada.loc[i, 'Observações'])
             if pd.isnull(self.comments):
                 self.comments = "-"
+
+            if self.peso_formatado.startswith("0"):
+                self.peso_formatado = "1"
 
             # Tratamento de Data e Hora
 
@@ -189,6 +199,11 @@ class AutomacaoPfr:
 
             self.preencher_formulario()
 
+            return total_linhas
+
+        self.navegador.quit()
+        self.service.stop()
+
     def preencher_formulario(self):
         time.sleep(self.espera_longa)
 
@@ -234,12 +249,14 @@ class AutomacaoPfr:
             time.sleep(self.espera_curta)
 
             # Preenchendo o CTe
-            self.navegador.find_element('xpath', '//*[@id="ConfirmTD_0"]/fieldset/table/tbody/tr[4]/td[2]/input').send_keys(
+            self.navegador.find_element('xpath',
+                                        '//*[@id="ConfirmTD_0"]/fieldset/table/tbody/tr[4]/td[2]/input').send_keys(
                 self.cte)
             time.sleep(self.espera_curta)
 
             # Preenchendo o Valor do Frete
-            self.navegador.find_element('xpath', '//*[@id="pendingConfList0.invoiceAmount"]').send_keys(str(self.valor_frete))
+            self.navegador.find_element('xpath', '//*[@id="pendingConfList0.invoiceAmount"]').send_keys(
+                str(self.valor_frete))
             time.sleep(self.espera_curta)
 
             # Preenchendo o currency
@@ -247,7 +264,8 @@ class AutomacaoPfr:
             time.sleep(self.espera_curta)
 
             # Preenchendo o peso
-            self.navegador.find_element('xpath', '//*[@id="ConfirmTD_0"]/fieldset/table/tbody/tr[7]/td[2]/input').send_keys(
+            self.navegador.find_element('xpath',
+                                        '//*[@id="ConfirmTD_0"]/fieldset/table/tbody/tr[7]/td[2]/input').send_keys(
                 self.peso_formatado)
             time.sleep(self.espera_curta)
 
@@ -294,9 +312,8 @@ class AutomacaoPfr:
             # Clicando no botão de Submit
             self.navegador.find_element('xpath', '//*[@id="content_center"]/div[2]/div[4]/div/a[3]').click()
 
-            self.lista_pfr_preenchidas.append(self.pfr)
+            self.add_to_list_pfr_preenchidas(self.pfr)
             print(f"PRF's preenchidas no site: {self.lista_pfr_preenchidas}")
 
-        except (ConnectionRefusedError, http.client.RemoteDisconnected) :
+        except (ConnectionRefusedError, http.client.RemoteDisconnected):
             print("Aplicação Encerrada")
-
