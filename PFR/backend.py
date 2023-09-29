@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+from datetime import datetime
 import pandas as pd
 import pytz
 from pynput import mouse
@@ -138,10 +139,13 @@ class AutomacaoPfr:
             fuso_horario_brasil = pytz.timezone('America/Sao_Paulo')
 
             # Obtém o campo Data e Hora de Coleta da Planilha sem formatacao
-            data_hora_coleta = planilha_carregada.loc[i, 'Data e Horário da Coleta']
+            data_hora_coleta_str = planilha_carregada.loc[i, 'Data e Horário da Coleta']
+
+            # Converte a string para um objeto de data e hora
+            data_hora_coleta = datetime.strptime(data_hora_coleta_str, "%d/%m/%Y %H:%M")
 
             # Converte a data e hora da coleta para o fuso horário do Brasil
-            data_hora_coleta_brasil = data_hora_coleta.replace(tzinfo=fuso_horario_brasil)
+            data_hora_coleta_brasil = fuso_horario_brasil.localize(data_hora_coleta)
 
             # Parseando as informaçoes de data e hora ajustadas para o fuso horário do Brasil
             self.dia_coleta = data_hora_coleta_brasil.strftime('%d')
@@ -153,10 +157,14 @@ class AutomacaoPfr:
                 self.hora_coleta = self.hora_coleta[1:]
 
             # Obtém o campo Data e Hora de entrega da Planilha
-            data_hora_entrega = planilha_carregada.loc[i, 'Previsão de Entrega']
+            data_hora_entrega_str = planilha_carregada.loc[i, 'Previsão de Entrega']
+
+            # Converte a string para um objeto de data e hora
+            data_hora_entrega = datetime.strptime(data_hora_entrega_str, "%d/%m/%Y %H:%M")
 
             # Converte a data e hora da coleta para o fuso horário do Brasil
-            data_hora_entrega_brasil = data_hora_entrega.replace(tzinfo=fuso_horario_brasil)
+            data_hora_entrega_brasil = fuso_horario_brasil.localize(data_hora_entrega)
+
             if pd.isnull(data_hora_entrega_brasil):
                 print("")
 
@@ -202,7 +210,7 @@ class AutomacaoPfr:
 
             self.preencher_formulario()
 
-            return total_linhas
+
 
         self.navegador.quit()
         self.service.stop()
@@ -254,7 +262,7 @@ class AutomacaoPfr:
             # Preenchendo o CTe
             self.navegador.find_element('xpath',
                                         '//*[@id="ConfirmTD_0"]/fieldset/table/tbody/tr[4]/td[2]/input').send_keys(
-                self.cte)
+                str(self.cte))
             time.sleep(self.espera_curta)
 
             # Preenchendo o Valor do Frete

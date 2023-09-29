@@ -11,7 +11,7 @@ class InterfaceGrafica:
     def __init__(self, janela, lista_pfr_preenchidas):
         self.janela = janela
         self.janela.title("Confirmação de PFR's")
-        self.janela.geometry("450x130")
+        self.janela.geometry("490x130")
 
         # Configurar ícone da aplicação
         self.icon = ImageTk.PhotoImage(file="../PFR/icon/list_notes_930.ico")
@@ -22,9 +22,6 @@ class InterfaceGrafica:
         self.lista_pfr_preenchidas = lista_pfr_preenchidas
         self.total_linhas = app.carregar_planilha()[1]
 
-        # Barra de progresso
-        self.progresso = ttk.Progressbar(self.janela, orient="horizontal", length=300, mode="determinate")
-        self.progresso.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         # Botão "Iniciar"
         self.botao_iniciar = tk.Button(self.janela, text="Iniciar Processo", command=self.iniciar, width=15, height=3)
@@ -35,7 +32,9 @@ class InterfaceGrafica:
         self.botao_finalizar.pack(side=tk.RIGHT, padx=5, pady=4)
 
         # Rótulo acima da Listbox
-        self.label_lista = tk.Label(self.janela, text="Lista de PFR's confirmada:")
+        self.label_lista = tk.Label(self.janela,
+                                    text=f"Lista de PFR's confirmada: {len(self.lista_pfr_preenchidas)} "
+                                         f"de {self.total_linhas}")
         self.label_lista.pack(side=tk.TOP, padx=5, pady=2)
 
         # Lista de PFRs preenchidas (widget)
@@ -44,7 +43,6 @@ class InterfaceGrafica:
 
         # Callback que atualiza a listagem na Interface Grafica
         app.set_callback(self.atualizar_lista)
-        app.set_callback(self.atualizar_progresso)
 
     def atualizar_lista(self, pfr):
         try:
@@ -55,17 +53,12 @@ class InterfaceGrafica:
 
     def atualizar_label(self):
         total_elementos = len(self.lista_pfr_widget.get(0, tk.END))
-        self.label_lista.config(text=f"Lista de PFR's confirmadas: {total_elementos}")
+        self.label_lista.config(text=f"Lista de PFR's confirmada: {len(self.lista_pfr_preenchidas)} "
+                                     f"de {self.total_linhas}")
 
     def codigo_a_executar(self):
-        for i,item in enumerate(self.lista_pfr_preenchidas):
-            progresso = (i + 1) /self.total_linhas * 100
-
-            self.atualizar_progresso(progresso)
-
         app.iniciar_navegador()
         app.iniciar_automacao()
-        self.atualizar_lista()
 
     def iniciar(self):
         # Ação a ser realizada ao clicar no botão "Iniciar"
@@ -86,9 +79,6 @@ class InterfaceGrafica:
         self.event.set()
         # self.janela.destroy()
         # sys.exit()
-
-    def atualizar_progresso(self, progresso):
-        self.progresso['value'] = progresso
 
 
 if __name__ == "__main__":
