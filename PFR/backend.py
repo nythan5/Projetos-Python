@@ -187,6 +187,9 @@ class AutomacaoPfr:
                 case 335060:  # Piex
                     self.loop_transportadora = 16
 
+                case 359070:  # Expresso Mirassol
+                    self.loop_transportadora = 24
+
             # Se um desses itens esta vazio ele ignora e salva numa lista de nao realizados
             if (pd.isnull(self.codigo_transportadora) or (pd.isnull(self.pfr)) or
                     (pd.isnull(data_hora_entrega_brasil))
