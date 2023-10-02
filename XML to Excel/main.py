@@ -13,7 +13,7 @@ valores = []
 
 # Funções
 def pegar_infos(nome_arquivo,valores):
-    with open (f'{caminho_diretorio_nf}/{nome_arquivo}',"rb") as arquivo_xml:
+    with open (f'{caminho_diretorio_nf}/{nome_arquivo}', "rb") as arquivo_xml:
         dict_arquivo = xmltodict.parse(arquivo_xml)  
 
         if "soap12:Envelope" in dict_arquivo:
