@@ -16,9 +16,6 @@ class BaixarExcel:
         self.navegador = None
         self.link = 'https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/levantamento-de-precos-de-combustiveis-ultimas-semanas-pesquisadas'
 
-
-
-
     def abri_navegador(self):
         self.navegador = webdriver.Chrome(service=self.service)
         link_site = self.link
@@ -26,22 +23,14 @@ class BaixarExcel:
 
         time.sleep(2)
 
-
-
-
         # Ele sai do invólucro criado para forçar um login
         self.navegador.find_element('xpath', '/html/body').click()
         time.sleep(1)
-        #self.navegador.find_element('xpath', '//*[@id="parent-fieldname-text"]/ul[1]/li[2]/a')
-
-        self.navegador.find_element('xpath', '//*[@id="parent-fieldname-text"]/ul[1]/li[2]/a')
+        # self.navegador.find_element('xpath', '//*[@id="parent-fieldname-text"]/ul[1]/li[2]/a')
 
 
 
         time.sleep(90000)
-
-
-
 
 
 # Criar uma instância da classe BaixarExcel

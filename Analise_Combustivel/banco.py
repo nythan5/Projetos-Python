@@ -52,7 +52,7 @@ class ConexaoBancoDados:
                 data_da_colecao = datetime.strftime(row['DATA DA COLETA'], '%Y/%m/%d')
                 consulta = """ 
                 
-                    SELECT COUNT(*) FROM revenda_combustiveis
+                    SELECT COUNT (*) FROM revenda_combustiveis
                     WHERE cnpj = %s
                     AND produto = %s
                     AND data_da_coleta = %s
