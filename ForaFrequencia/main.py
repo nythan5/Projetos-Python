@@ -57,9 +57,23 @@ class Interface:
     def selecionar_carteira(self):
         self.caminho_carteira = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")])
         if self.caminho_carteira:
+            if not self.verificar_abade_divisao():
+                messagebox.showerror("Erro", "A aba 'DIVISÃO' não foi encontrada no arquivo selecionado.")
+                self.caminho_carteira = ""
+                return
+
             self.listar_nomes_planejadoresILC()
             nome_arquivo = os.path.basename(self.caminho_carteira)
             self.label_carteira.config(text=f"Arquivo Selecionado: {nome_arquivo}")
+
+    def verificar_abade_divisao(self):
+        if self.caminho_carteira:
+            try:
+                xl = pd.ExcelFile(self.caminho_carteira)
+                return 'DIVISÃO' in xl.sheet_names
+            except Exception as e:
+                print(f"Erro ao verificar a aba DIVISÃO: {str(e)}")
+        return False
 
     def selecionar_relatorio(self):
         self.caminho_relatorio = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")])
