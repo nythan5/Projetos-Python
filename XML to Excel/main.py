@@ -75,7 +75,7 @@ def processar_tudo():
 janela = Tk()
 janela.title("XML to Excel")
 janela.geometry("340x160")
-janela.iconbitmap('C:/Users/Gabriel Nathan Dias/Desktop/Python/Projetos-Python/XML to Excel/line_chart_file_icon_256235.ico')
+#janela.iconbitmap('C:/Users/Gabriel Nathan Dias/Desktop/Python/Projetos-Python/XML to Excel/line_chart_file_icon_256235.ico')
 janela.configure(bg= "white")
 
 
