@@ -9,8 +9,11 @@ from tkinter import messagebox
 class Interface:
     def __init__(self, root):
         self.root = root
-        self.root.title("Divisão de Carteira")
-        self.root.geometry("350x180")
+        self.root.title("Fora de Frequência")
+
+        # Configure o estilo do tema
+        self.style = ttk.Style()
+        self.style.theme_use("clam")  # Escolha um tema que você prefira
 
         # Variável para armazenar o caminho dos arquivos
         self.caminho_carteira = ""
@@ -18,44 +21,51 @@ class Interface:
 
         self.nomes_ilc = []
 
-        # Adicione um botão para selecionar o arquivo auxiliar
-        self.label_carteira = tk.Label(root, text="Carteira Fornecedores:", anchor='w')
-        self.label_carteira.pack()
+        # Crie estilos de fonte personalizados
+        font_style_label = ("Helvetica", 10)
+        font_style_button = ("Helvetica", 9)
 
-        self.button_auxiliar = tk.Button(root, text="Procurar", command=self.selecionar_carteira, anchor='w')
-        self.button_auxiliar.pack()
+        # Crie o frame principal para melhorar o espaçamento
+        frame = ttk.Frame(root)
+        frame.pack(padx=1, pady=1, fill="both", expand=True)
+
+        # Adicione um botão para selecionar o arquivo auxiliar
+        self.label_carteira = ttk.Label(frame, text="Carteira Fornecedores:", font=font_style_label)
+        self.label_carteira.grid(row=0, column=0, sticky="w", pady=5)
+
+        self.button_auxiliar = ttk.Button(frame, text="Procurar", command=self.selecionar_carteira, style="TButton")
+        self.button_auxiliar.grid(row=0, column=4, pady=5)
 
         # Adicione um botão para selecionar o arquivo do Relatório
-        self.label_relatorio = tk.Label(root, text="Relatório Fora de Frequência:", anchor='w')
-        self.label_relatorio.pack()
+        self.label_relatorio = ttk.Label(frame, text="Relatório Fora de Frequência:", font=font_style_label)
+        self.label_relatorio.grid(row=1, column=0, sticky="w", pady=5)
 
-        self.button_relatorio = tk.Button(root, text="Procurar", command=self.selecionar_relatorio, anchor='w')
-        self.button_relatorio.pack()
+        self.button_relatorio = ttk.Button(frame, text="Procurar", command=self.selecionar_relatorio, style="TButton")
+        self.button_relatorio.grid(row=1, column=4, pady=5)
 
         # Selecionar planejador ILC
-        self.label_nomes_ilc = tk.Label(root, text="Planejador ILC:", anchor='w')
-        self.label_nomes_ilc.pack()
+        self.label_nomes_ilc = ttk.Label(frame, text="Planejador ILC:", font=font_style_label)
+        self.label_nomes_ilc.grid(row=2, column=0, sticky="w", pady=5)
 
-        self.combobox_nomes_ilc = ttk.Combobox(root, values=sorted(self.nomes_ilc), state="readonly")
-        self.combobox_nomes_ilc.pack()
+        self.combobox_nomes_ilc = ttk.Combobox(frame, values=sorted(self.nomes_ilc), state="readonly")
+        self.combobox_nomes_ilc.grid(row=2, column=4, pady=5)
 
         # Adicione um botão para filtrar os dados
-        self.button_filtrar = tk.Button(root, text="Filtrar Dados", command=self.filtrar_dados, anchor='w')
-        self.button_filtrar.pack()
+        self.button_filtrar = ttk.Button(frame, text="Filtrar Dados", command=self.filtrar_dados, style="TButton")
+        self.button_filtrar.grid(row=3, column=4, columnspan=2, pady=5)
 
     def selecionar_carteira(self):
         self.caminho_carteira = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")])
         if self.caminho_carteira:
             self.listar_nomes_planejadoresILC()
-            nome_arquivo = os.path.basename(self.caminho_carteira)  # Obtém somente o nome do arquivo
-            self.label_carteira.config(text=f"Arquivo Selecionado: {nome_arquivo}", foreground='White', background='Green')
+            nome_arquivo = os.path.basename(self.caminho_carteira)
+            self.label_carteira.config(text=f"Arquivo Selecionado: {nome_arquivo}")
 
     def selecionar_relatorio(self):
         self.caminho_relatorio = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")])
         if self.caminho_relatorio:
-            nome_arquivo = os.path.basename(self.caminho_relatorio)  # Obtém somente o nome do arquivo
-            self.label_relatorio.config(text=f"Arquivo do Relatório Selecionado: {nome_arquivo}", foreground='White',
-                                        background='Green')
+            nome_arquivo = os.path.basename(self.caminho_relatorio)
+            self.label_relatorio.config(text=f"Arquivo do Relatório Selecionado: {nome_arquivo}")
 
     def listar_nomes_planejadoresILC(self):
         if self.caminho_carteira:
@@ -74,10 +84,8 @@ class Interface:
                 df_auxiliar_filtrado = df_carteira[df_carteira['Planejador ILC'] == nome_selecionado]
                 df_completo = df_relatorio.merge(df_auxiliar_filtrado, on='NOME INTEGRATOR', how='inner')
 
-                # Obtenha valores únicos na coluna "MRP Controller Name"
                 nomes_planejadoresjd = df_completo['MRP Controller Name'].unique()
 
-                # Pasta de documentos do usuário
                 documentos_path = os.path.expanduser('~\\Documents')
 
                 for nome in nomes_planejadoresjd:
@@ -90,6 +98,7 @@ class Interface:
                     print(f"Dados filtrados para {nome} salvos em {nome_arquivo}")
 
                 messagebox.showinfo(f"Processo finalizado!", "Arquivos salvos em MEUS DOCUMENTOS")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
