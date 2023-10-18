@@ -58,13 +58,25 @@ class AutomacaoPfr:
         self.ano_entrega = ""
         self.hora_entrega = ""
 
-    def set_callback(self, callback):
-        self.callback = callback
+
+    def set_callback_ok(self, callback):
+        self.callback_ok = callback
+
+    def set_callback_nok(self, callback):
+        self.callback_nok = callback
+
+
 
     def add_to_list_pfr_preenchidas(self, pfr):
         self.lista_pfr_preenchidas.append(pfr)
-        if self.callback:
-            self.callback(pfr)
+        if self.callback_ok:
+            self.callback_ok(pfr)
+
+    def add_to_list_pfr_com_erro(self, pfr):
+        self.lista_pfr_naorealizadas.append(pfr)
+        if self.callback_nok:
+            self.callback_nok(pfr)
+
 
     def bloquear_scroll(self, x, y, dx, dy):
         return False
@@ -89,13 +101,13 @@ class AutomacaoPfr:
             # Fazendo Login no site
 
             time.sleep(self.espera_longa)
-            self.navegador.find_element('xpath', '//*[@id="okta-signin-username"]').send_keys(self.login)
+            self.navegador.find_element('xpath', '//*[@id="input29"]').send_keys(self.login)
             time.sleep(0.5)
-            self.navegador.find_element('xpath', '//*[@id="okta-signin-password"]').send_keys(self.senha)
+            self.navegador.find_element('xpath', '//*[@id="input37"]').send_keys(self.senha)
             time.sleep(0.5)
-            self.navegador.find_element('xpath', '//*[@id="okta-signin-submit"]').click()
+            self.navegador.find_element('xpath', '//*[@id="form21"]/div[2]/input').click()
             time.sleep(self.espera_longa)
-            self.navegador.find_element('xpath', '//*[@id="form66"]/div[1]/div[2]/a').click()
+            self.navegador.find_element('xpath', '//*[@id="form62"]/div[2]/input').click()
             time.sleep(self.espera_login)
         except (ConnectionRefusedError, http.client.RemoteDisconnected):
             print("Aplicação Encerrada")
@@ -121,14 +133,13 @@ class AutomacaoPfr:
             self.codigo_transportadora = planilha_carregada.loc[i, 'Codigo_Transportadora']
             self.tipo_numero_referencia = "Carrier Pro"
             self.cte = planilha_carregada.loc[i, 'CT-e']
-            self.valor_frete = planilha_carregada.loc[i, 'Valor do Frete']
+            self.valor_frete = str(planilha_carregada.loc[i, 'Valor do Frete']).replace(',', '.')
             self.currency = "BRL"
             peso1 = planilha_carregada.loc[i, 'Peso']
             self.peso_formatado = "{:.2f}".format(peso1)
             self.measure = "KG"
-            self.comments = str(planilha_carregada.loc[i, 'Observações'])
-            if pd.isnull(self.comments):
-                self.comments = "-"
+            self.comments = str(planilha_carregada.loc[i, 'Observações']).replace('nan', '-')
+
 
             if self.peso_formatado.startswith("0"):
                 self.peso_formatado = "1"
@@ -140,6 +151,9 @@ class AutomacaoPfr:
 
             # Obtém o campo Data e Hora de Coleta da Planilha sem formatacao
             data_hora_coleta_str = planilha_carregada.loc[i, 'Data e Horário da Coleta']
+
+            if isinstance(data_hora_coleta_str, datetime):
+                data_hora_coleta_str = data_hora_coleta_str.strftime("%d/%m/%Y %H:%M")
 
             # Converte a string para um objeto de data e hora
             data_hora_coleta = datetime.strptime(data_hora_coleta_str, "%d/%m/%Y %H:%M")
@@ -158,6 +172,9 @@ class AutomacaoPfr:
 
             # Obtém o campo Data e Hora de entrega da Planilha
             data_hora_entrega_str = planilha_carregada.loc[i, 'Previsão de Entrega']
+
+            if isinstance(data_hora_entrega_str, datetime):
+                data_hora_entrega_str = data_hora_entrega_str.strftime("%d/%m/%Y %H:%M")
 
             # Converte a string para um objeto de data e hora
             data_hora_entrega = datetime.strptime(data_hora_entrega_str, "%d/%m/%Y %H:%M")
@@ -204,7 +221,7 @@ class AutomacaoPfr:
                     or (pd.isnull(self.cte))):
                 i += 1
                 print("Lista de Arquivos Faltantes")
-                self.lista_pfr_naorealizadas.append(("Linha", i, "N° PFR ", self.pfr))
+                self.add_to_list_pfr_com_erro(self.pfr)
                 print(self.lista_pfr_naorealizadas)
                 continue
 

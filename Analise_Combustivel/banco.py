@@ -11,6 +11,7 @@ class ConexaoBancoDados:
         self.senha = senha
         self.banco_de_dados = banco_de_dados
         self.conexao = None
+        self.resultado_consulta = None
 
     def conectar(self):
         try:
@@ -32,14 +33,13 @@ class ConexaoBancoDados:
             self.conexao.close()
             print("Conexão interrompida com sucesso")
 
-
-
-    def insert_Banco(self):
+    def insert_Banco(self, caminho_arquivo, nome_arquivo):
 
         # Abrindo o arquivo XLSX e ignorando as 10 primeiras linhas
         arquivo = ArquivoXlsx()
+        arquivo.diretorio_arquivo = caminho_arquivo
         planilha = arquivo.carregar_planilha()
-
+        nome_arquivo = nome_arquivo
 
         conexao = self.conectar()
 
@@ -48,33 +48,35 @@ class ConexaoBancoDados:
             # Criando um cursor
             cursor = conexao.cursor()
 
-            for index, row in planilha.iterrows():
-                data_da_colecao = datetime.strftime(row['DATA DA COLETA'], '%Y/%m/%d')
-                consulta = """ 
-                
-                    SELECT COUNT (*) FROM revenda_combustiveis
-                    WHERE cnpj = %s
-                    AND produto = %s
-                    AND data_da_coleta = %s
-                
-                """
+            consulta = """ 
+            
+                SELECT 1 FROM revenda_combustiveis
+                WHERE nome_arquivo_insercao = %s
+                LIMIT 1
 
-                cursor.execute(consulta, (row['CNPJ'], row['PRODUTO'], data_da_colecao))
-                resultado = cursor.fetchone()
+            """
 
-                if resultado[0] > 0:
+            cursor.execute(consulta, (nome_arquivo,))
+            resultado = cursor.fetchone()
 
-                    print(f"Já existe um registro com o CNPJ {row['CNPJ']}, Produto {row['PRODUTO']} e Data {data_da_colecao}. Não será inserido.")
+            if resultado is not None and resultado[0] > 0:
+                self.resultado_consulta = f"Já existe registros com deste arquivo: {nome_arquivo}"
+                print(self.resultado_consulta)
 
-                else:
+            else:
+                for index, row in planilha.iterrows():
+                    data_da_colecao = datetime.strftime(row['DATA DA COLETA'], '%Y/%m/%d')
+
                     insercao = """
-                    
+                        
                         INSERT INTO revenda_combustiveis (cnpj, razao,
-                        municipio, estado, bandeira, produto, unidade_de_medida, preco_de_revenda, data_da_coleta)
-                        
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                        
-                                """
+                        municipio, estado, bandeira, produto, unidade_de_medida, preco_de_revenda,
+                        data_da_coleta, nome_arquivo_insercao)
+                            
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            
+                            """
+
                     # Converter a data para o formato 'YYYY-MM-DD'
                     data_da_colecao = datetime.strftime(row['DATA DA COLETA'], '%Y/%m/%d')
 
@@ -88,7 +90,9 @@ class ConexaoBancoDados:
                         row['PRODUTO'],
                         row['UNIDADE DE MEDIDA'],
                         row['PREÇO DE REVENDA'],
-                        data_da_colecao  # Data convertida para o formato 'YYYY-MM-DD'
+                        data_da_colecao,  # Data convertida para o formato 'YYYY-MM-DD'
+                        nome_arquivo
+
                     )
                     dados_to_insert.append(dados)
                     cursor.executemany(insercao, dados_to_insert)
@@ -96,7 +100,3 @@ class ConexaoBancoDados:
             # Comitar as inserções
             conexao.commit()
             print("Processo Finalizado")
-
-
-
-
