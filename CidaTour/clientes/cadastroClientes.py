@@ -1,13 +1,11 @@
 from datetime import datetime
 import tkinter as tk
 from tkinter import ttk
-
 import mysql.connector
 from ttkthemes import ThemedTk
 from tkcalendar import DateEntry
 from tkinter import messagebox
 from CidaTour.database import ConexaoBancoDados
-
 
 class CadastroClientes:
     def __init__(self):
@@ -84,48 +82,45 @@ class CadastroClientes:
 
         # Validar se os campos obrigatórios foram preenchidos
         if nome and sobrenome and cpf and data_nascimento:
-
-            # Lógica para inserir os dados em sua tabela (conexão com o banco de dados será adicionada posteriormente)
             conexao = ConexaoBancoDados()
             conexao.conectar()
 
             try:
-                # Criar um cursor para interagir com o banco de dados
                 cursor = conexao.conn.cursor()
 
-                # SQL para inserir um novo cliente na tabela de clientes
-                insert_sql = "INSERT INTO clientes (nome, sobrenome, rg, cpf, data_nascimento, telefone) VALUES (%s, %s, %s, %s, %s, %s)"
+                # Verificar se já existe um cliente com o mesmo CPF ou RG
+                cursor.execute("SELECT cpf, rg FROM clientes WHERE cpf = %s OR rg = %s", (cpf, rg))
+                existing_client = cursor.fetchone()
 
-                # Valores para a consulta SQL
-                valores = (nome, sobrenome, rg, cpf, data_nascimento_formatada, telefone)
+                if existing_client:
+                    messagebox.showerror("Erro", "Já existe um cliente com o mesmo CPF ou RG.")
+                else:
+                    # Inserir o novo cliente na tabela de clientes
+                    insert_sql = "INSERT INTO clientes (nome, sobrenome, rg, cpf, data_nascimento, telefone) VALUES (%s, %s, %s, %s, %s, %s)"
+                    valores = (nome, sobrenome, rg, cpf, data_nascimento_formatada, telefone)
+                    cursor.execute(insert_sql, valores)
+                    conexao.conn.commit()
 
-                # Executar a consulta SQL
-                cursor.execute(insert_sql, valores)
+                    messagebox.showinfo("Cadastro Cliente", "Cliente cadastrado com sucesso!")
 
-                # Confirmar a operação e salvar as mudanças no banco de dados
-                conexao.conn.commit()
-
-                messagebox.showinfo("Cadastro Cliente", "Cliente cadastrado com sucesso!")
-
-                # Limpar os campos após o cadastro
-                self.entry_nome.delete(0, tk.END)
-                self.entry_sobrenome.delete(0, tk.END)
-                self.entry_rg.delete(0, tk.END)
-                self.entry_cpf.delete(0, tk.END)
-                self.entry_data_nascimento.delete(0, tk.END)  # Limpar a data
-                self.entry_telefone.delete(0, tk.END)
+                    # Limpar os campos após o cadastro
+                    self.entry_nome.delete(0, tk.END)
+                    self.entry_sobrenome.delete(0, tk.END)
+                    self.entry_rg.delete(0, tk.END)
+                    self.entry_cpf.delete(0, tk.END)
+                    self.entry_data_nascimento.delete(0, tk.END)  # Limpar a data
+                    self.entry_telefone.delete(0, tk.END)
 
             except mysql.connector.Error as e:
                 print(f"Erro ao cadastrar o cliente: {e}")
-                messagebox.showerror("Erro no Cadastro", f"Ocorreu um erro ao cadastrar o cliente. "
-                                                         f"Type_error: {e} ")
+                messagebox.showerror("Erro no Cadastro", f"Ocorreu um erro ao cadastrar o cliente. Type_error: {e} ")
 
             finally:
-                # Fechar o cursor e a conexão
                 cursor.close()
                 conexao.desconectar()
 
         else:
-            # Exibir uma mensagem de erro se os campos obrigatórios não estiverem preenchidos
             tk.messagebox.showerror("Erro no Preenchimento",
                                     "Preencha os campos obrigatórios: Nome, Sobrenome, CPF e Data de Nascimento")
+
+
