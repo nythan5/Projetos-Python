@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 from ttkthemes import ThemedTk
-from tkcalendar import DateEntry
 from CidaTour.database import ConexaoBancoDados
 from tkinter import messagebox
+from tkcalendar import Calendar
 from datetime import datetime
 
 class RegistroPagamentoViagem:
@@ -18,24 +18,21 @@ class RegistroPagamentoViagem:
         self.label_viagem.grid(row=0, column=0, padx=5, pady=10)
         self.combobox_viagem = ttk.Combobox(self.frame)
         self.combobox_viagem.grid(row=0, column=1, padx=5, pady=10)
+
         self.combobox_viagem.bind("<<ComboboxSelected>>", self.carregar_clientes)
 
-        self.treeview = ttk.Treeview(self.frame, columns=("Nome", "Valor Pago", "Valor Restante"))
-        self.treeview.heading("Nome", text="Nome", command=lambda: self.sort_column(self.treeview, "Nome", False))
-        self.treeview.heading("Valor Pago", text="Valor Pago", command=lambda: self.sort_column(self.treeview, "Valor Pago", True))
-        self.treeview.heading("Valor Restante", text="Valor Restante", command=lambda: self.sort_column(self.treeview, "Valor Restante", True))
+        self.treeview = ttk.Treeview(self.frame, columns=("Nome", "Valor Pago", "Saldo Restante"))
+        self.treeview.heading("#1", text="Nome")
+        self.treeview.heading("#2", text="Valor Pago")
+        self.treeview.heading("#3", text="Saldo Restante")
+        self.treeview.column("#0", width=0, stretch=tk.NO)
         self.treeview.grid(row=1, column=0, columnspan=2, padx=5, pady=10)
 
-        # Configurar a largura da primeira coluna para 0
-        self.treeview.column("#0", width=0, stretch=tk.NO)
-
         self.carregar_viagens()
+        self.valor_total_pago = {}
 
-    def sort_column(self, treeview, col, reverse):
-        items = [(treeview.set(item, col), item) for item in treeview.get_children('')]
-        items.sort(reverse=reverse)
-        for index, (val, item) in enumerate(items):
-            treeview.move(item, '', index)
+        # Botão para cadastrar pagamento
+        ttk.Button(self.frame, text="Cadastrar Pagamento", command=self.abrir_cadastro_pagamento).grid(row=2, column=0, columnspan=2, padx=5, pady=10)
 
     def carregar_viagens(self):
         conexao = ConexaoBancoDados()
@@ -44,9 +41,9 @@ class RegistroPagamentoViagem:
         try:
             cursor = conexao.conn.cursor()
             cursor.execute("SELECT titulo FROM viagens WHERE status_viagem = 1")
-            viagens_disponiveis = cursor.fetchall()
-            titulos_viagens_disponiveis = [viagem[0] for viagem in viagens_disponiveis]  # Corrigido o nome da variável
-            self.combobox_viagem['values'] = titulos_viagens_disponiveis
+            viagens_disponíveis = cursor.fetchall()
+            títulos_viagens_disponíveis = [viagem[0] for viagem in viagens_disponíveis]
+            self.combobox_viagem['values'] = títulos_viagens_disponíveis
 
         except Exception as e:
             print(f"Erro ao carregar viagens disponíveis: {e}")
@@ -57,18 +54,22 @@ class RegistroPagamentoViagem:
 
     def carregar_clientes(self, event):
         viagem_selecionada = self.combobox_viagem.get()
+        if not viagem_selecionada:
+            return
+
         conexao = ConexaoBancoDados()
         conexao.conectar()
 
         try:
             cursor = conexao.conn.cursor()
             cursor.execute("""
-                SELECT c.nome, p.valor_pago
+                SELECT c.id, c.nome, SUM(p.valor_pago)
                 FROM clientes c
                 JOIN viagens_clientes vc ON c.id = vc.id_cliente
                 JOIN viagens v ON vc.id_viagem = v.id
                 LEFT JOIN pagamentos p ON vc.id = p.id_viagens_clientes
                 WHERE v.titulo = %s
+                GROUP BY c.id
             """, (viagem_selecionada,))
             clientes_vinculados = cursor.fetchall()
 
@@ -76,11 +77,14 @@ class RegistroPagamentoViagem:
                 self.treeview.delete(item)
 
             for cliente in clientes_vinculados:
-                nome = cliente[0]
-                valor_pago = cliente[1] if cliente[1] is not None else 0
+                id_cliente = cliente[0]
+                nome = cliente[1]
+                valor_total_pago = cliente[2] if cliente[2] is not None else 0
                 valor_custo = self.obter_valor_custo(viagem_selecionada)
-                valor_restante = valor_custo - valor_pago
-                self.treeview.insert("", "end", values=(nome, valor_pago, valor_restante))
+                valor_restante = valor_custo - valor_total_pago
+                self.treeview.insert("", "end", values=(nome, valor_total_pago, valor_restante, id_cliente))
+
+            self.treeview.bind("<Double-1>", self.abrir_pagamentos_cliente)
 
         except Exception as e:
             print(f"Erro ao listar clientes vinculados: {e}")
@@ -111,6 +115,191 @@ class RegistroPagamentoViagem:
             cursor.close()
             conexao.desconectar()
 
+    def abrir_pagamentos_cliente(self, event):
+        item_selecionado = self.treeview.selection()[0]
+        id_cliente = self.treeview.item(item_selecionado, 'values')[3]
+        nome_cliente = self.treeview.item(item_selecionado, 'values')[0]
+
+        # Abra uma nova janela para exibir os pagamentos do cliente
+        janela_pagamentos_cliente = ThemedTk(theme="clam")
+        janela_pagamentos_cliente.title(f"Pagamentos de {nome_cliente}")
+
+        frame = ttk.Frame(janela_pagamentos_cliente, padding=10)
+        frame.pack()
+
+        treeview_pagamentos = ttk.Treeview(frame, columns=("Valor Pago", "Data Pagamento"))
+        treeview_pagamentos.heading("#1", text="Valor Pago")
+        treeview_pagamentos.heading("#2", text="Data Pagamento")
+        treeview_pagamentos.column("#0", width=0, stretch=tk.NO)
+        treeview_pagamentos.grid(row=0, column=0, padx=5, pady=10)
+
+        conexao = ConexaoBancoDados()
+        conexao.conectar()
+
+        try:
+            cursor = conexao.conn.cursor()
+            cursor.execute("SELECT valor_pago, data_pagamento FROM pagamentos WHERE id_viagens_clientes = %s", (id_cliente,))
+            pagamentos = cursor.fetchall()
+
+            for pagamento in pagamentos:
+                valor_pago = pagamento[0]
+                data_pagamento = pagamento[1]
+                treeview_pagamentos.insert("", "end", values=(valor_pago, data_pagamento))
+
+        except Exception as e:
+            print(f"Erro ao listar pagamentos do cliente: {e}")
+
+        finally:
+            cursor.close()
+            conexao.desconectar()
+
+        def fechar_janela():
+            janela_pagamentos_cliente.destroy()
+
+        # Botão para fechar a janela
+        ttk.Button(frame, text="Fechar", command=fechar_janela).grid(row=1, column=0, padx=5, pady=10)
+
+    def abrir_cadastro_pagamento(self):
+        # Abra uma nova janela para o cadastro de pagamento
+        janela_cadastro_pagamento = ThemedTk(theme="clam")
+        janela_cadastro_pagamento.title("Cadastro de Pagamento")
+
+        frame = ttk.Frame(janela_cadastro_pagamento, padding=10)
+        frame.pack()
+
+        # Adicione um combobox para selecionar a viagem
+        ttk.Label(frame, text="Viagem:").grid(row=0, column=0, padx=5, pady=10)
+        self.combobox_viagem_cadastro = ttk.Combobox(frame)
+        self.combobox_viagem_cadastro.grid(row=0, column=1, padx=5, pady=10)
+        self.combobox_viagem_cadastro['values'] = self.combobox_viagem['values']  # Copia os valores do combobox da tela principal
+
+        # Evento para carregar clientes associados à viagem selecionada
+        self.combobox_viagem_cadastro.bind("<<ComboboxSelected>>", self.carregar_clientes_cadastro)
+
+        ttk.Label(frame, text="Cliente:").grid(row=1, column=0, padx=5, pady=10)
+        self.combobox_cliente = ttk.Combobox(frame)
+        self.combobox_cliente.grid(row=1, column=1, padx=5, pady=10)
+
+        ttk.Label(frame, text="Valor Pago:").grid(row=2, column=0, padx=5, pady=10)
+        self.entry_valor = ttk.Entry(frame)
+        self.entry_valor.grid(row=2, column=1, padx=5, pady=10)
+
+        ttk.Label(frame, text="Data Pagamento:").grid(row=3, column=0, padx=5, pady=10)
+        self.calendario = Calendar(frame)
+        self.calendario.grid(row=3, column=1, padx=5, pady=10)
+
+        # Botão para confirmar o cadastro do pagamento
+        ttk.Button(frame, text="Confirmar", command=self.cadastrar_pagamento).grid(row=4, column=0, columnspan=2,
+                                                                                   padx=5, pady=10)
+
+        # Atualize a lista de clientes associados à viagem selecionada
+        self.combobox_viagem_cadastro.bind("<<ComboboxSelected>>", self.carregar_clientes_cadastro)
+
+    def carregar_clientes_cadastro(self, event):
+        viagem_selecionada = self.combobox_viagem_cadastro.get()
+        conexao = ConexaoBancoDados()
+        conexao.conectar()
+
+        try:
+            cursor = conexao.conn.cursor()
+            cursor.execute("""
+                SELECT c.nome
+                FROM clientes c
+                JOIN viagens_clientes vc ON c.id = vc.id_cliente
+                JOIN viagens v ON vc.id_viagem = v.id
+                WHERE v.titulo = %s
+            """, (viagem_selecionada,))
+            clientes_associados = cursor.fetchall()
+            nomes_clientes = [cliente[0] for cliente in clientes_associados]
+            self.combobox_cliente['values'] = nomes_clientes
+
+        except Exception as e:
+            print(f"Erro ao carregar clientes associados à viagem: {e}")
+
+        finally:
+            cursor.close()
+            conexao.desconectar()
+
+    def cadastrar_pagamento(self):
+        cliente_selecionado = self.combobox_cliente.get()
+        viagem_selecionada = self.combobox_viagem_cadastro.get()
+        valor_pago = self.entry_valor.get()
+        data_pagamento = self.calendario.get_date()
+
+        # Realize a validação dos dados aqui
+        if not cliente_selecionado or not viagem_selecionada or not valor_pago or not data_pagamento:
+            messagebox.showerror("Erro", "Por favor, preencha todos os campos.")
+            return
+
+        # Formate a data no formato 'YYYY-MM-DD'
+        try:
+            data_pagamento = datetime.strptime(data_pagamento, "%m/%d/%y").strftime("%Y-%m-%d")
+        except ValueError:
+            messagebox.showerror("Erro", "Data de pagamento inválida. Use o formato MM/DD/YY.")
+            return
+
+        # Obtenha o ID de viagens_clientes
+        id_viagens_clientes = self.obter_id_viagens_clientes(cliente_selecionado, viagem_selecionada)
+
+        if id_viagens_clientes is not None:
+            # Insira os dados do pagamento no banco de dados
+            conexao = ConexaoBancoDados()
+            conexao.conectar()
+
+            try:
+                cursor = conexao.conn.cursor()
+                cursor.execute("""
+                    INSERT INTO pagamentos (id_viagens_clientes, valor_pago, data_pagamento)
+                    VALUES (%s, %s, %s)
+                """, (id_viagens_clientes, valor_pago, data_pagamento))
+
+                conexao.conn.commit()
+
+                # Atualize a exibição dos valores na Treeview
+                self.carregar_clientes(None)
+
+            except Exception as e:
+                print(f"Erro ao cadastrar pagamento: {e}")
+                conexao.conn.rollback()
+
+            finally:
+                cursor.close()
+                conexao.desconectar()
+        else:
+            messagebox.showerror("Erro",
+                                 "Não foi possível encontrar o ID de viagens_clientes para o cliente e viagem selecionados.")
+
+    def obter_id_viagens_clientes(self, cliente, viagem):
+        conexao = ConexaoBancoDados()
+        conexao.conectar()
+
+        try:
+            cursor = conexao.conn.cursor()
+            cursor.execute("""
+                SELECT vc.id
+                FROM viagens_clientes vc
+                JOIN clientes c ON vc.id_cliente = c.id
+                JOIN viagens v ON vc.id_viagem = v.id
+                WHERE c.nome = %s AND v.titulo = %s
+            """, (cliente, viagem))
+            resultado = cursor.fetchone()
+
+            if resultado:
+                return resultado[0]
+            else:
+                return None
+
+        except Exception as e:
+            print(f"Erro ao obter o ID de viagens_clientes: {e}")
+            return None
+
+        finally:
+            cursor.close()
+            conexao.desconectar()
+
+    def run(self):
+        self.janela.mainloop()
+
 if __name__ == "__main__":
     app = RegistroPagamentoViagem()
-    app.janela.mainloop()
+    app.run()
