@@ -3,12 +3,14 @@ from CidaTour.clientes.listarClientes import ListaClientes
 from CidaTour.viagens.cadastroViagens import CadastroViagens
 from CidaTour.viagens.listarViagens import ListaViagens
 from CidaTour.viagens.viagens_clientes import AssociarClientesViagem
+from CidaTour.viagens.pagamentoViagem import RegistroPagamentoViagem
 
 cadastro_cliente = CadastroClientes()
 lista_clientes = ListaClientes()
 cadastro_viagem = CadastroViagens()
 lista_viagens = ListaViagens()
 associar_viagem = AssociarClientesViagem()
+registro_Pagamento = RegistroPagamentoViagem()
 
 
 if __name__ == '__main__':
@@ -17,4 +19,5 @@ if __name__ == '__main__':
     cadastro_viagem.janela_cadastro.mainloop()
     lista_viagens.janela_lista.mainloop()
     associar_viagem.janela.mainloop()
+    registro_Pagamento.janela.mainloop()
 
