@@ -4,7 +4,7 @@ class ConexaoBancoDados:
     def __init__(self):
         self.host = 'localhost'
         self.user = 'root'
-        self.password = '1234'
+        self.password = '160196'
         self.database = 'cidatour_db'
         self.conn = None
 
