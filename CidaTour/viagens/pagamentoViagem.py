@@ -79,7 +79,7 @@ class RegistroPagamentoViagem:
             for cliente in clientes_vinculados:
                 id_cliente = cliente[0]
                 nome = cliente[1]
-                valor_total_pago = cliente[2] if cliente[2] is not None else 0
+                valor_total_pago = float(cliente[2] if cliente[2] is not None else 0)
                 valor_custo = self.obter_valor_custo(viagem_selecionada)
                 valor_restante = valor_custo - valor_total_pago
                 self.treeview.insert("", "end", values=(nome, valor_total_pago, valor_restante, id_cliente))
@@ -119,6 +119,9 @@ class RegistroPagamentoViagem:
         item_selecionado = self.treeview.selection()[0]
         id_cliente = self.treeview.item(item_selecionado, 'values')[3]
         nome_cliente = self.treeview.item(item_selecionado, 'values')[0]
+        viagem_selecionada = self.combobox_viagem.get()
+
+        id_viagem_cliente = self.obter_id_viagens_clientes(nome_cliente,viagem_selecionada)
 
         # Abra uma nova janela para exibir os pagamentos do cliente
         janela_pagamentos_cliente = ThemedTk(theme="clam")
@@ -138,7 +141,7 @@ class RegistroPagamentoViagem:
 
         try:
             cursor = conexao.conn.cursor()
-            cursor.execute("SELECT valor_pago, data_pagamento FROM pagamentos WHERE id_viagens_clientes = %s", (id_cliente,))
+            cursor.execute("SELECT valor_pago, data_pagamento FROM pagamentos WHERE id_viagens_clientes = %s", (id_viagem_cliente, ))
             pagamentos = cursor.fetchall()
 
             for pagamento in pagamentos:

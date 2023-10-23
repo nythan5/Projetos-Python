@@ -7,6 +7,7 @@ from tkcalendar import DateEntry
 from tkinter import messagebox
 from CidaTour.database import ConexaoBancoDados
 
+
 class CadastroClientes:
     def __init__(self):
         self.janela_cadastro = ThemedTk(theme="clam")
@@ -122,5 +123,3 @@ class CadastroClientes:
         else:
             tk.messagebox.showerror("Erro no Preenchimento",
                                     "Preencha os campos obrigatórios: Nome, Sobrenome, CPF e Data de Nascimento")
-
-

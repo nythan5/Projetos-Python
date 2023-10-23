@@ -4,7 +4,7 @@ CREATE TABLE viagens (
     descricao VARCHAR(255),
     data_check_in date NOT NULL ,  -- Adicionado UNIQUE para o campo RG
     data_check_out date NOT NULL ,  -- Adicionado UNIQUE para o campo CPF
-    custo = FLOAT,
+    custo  FLOAT,
     status_viagem BOOLEAN default True,
     data_cadastro DATETIME DEFAULT NOW()
 );
