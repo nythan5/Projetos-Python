@@ -1,5 +1,4 @@
 import http.client
-
 import selenium.common.exceptions
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -11,7 +10,7 @@ from datetime import datetime
 import pandas as pd
 import pytz
 from pynput import mouse
-import math
+
 
 
 class AutomacaoPfr:
@@ -34,7 +33,8 @@ class AutomacaoPfr:
         self.espera_login = 30
 
         # Service Navegador
-        self.service = Service(ChromeDriverManager().install())
+        chrome_driver_path = r"C:\Users\Gabriel Nathan Dias\Documents\ChromeDriver\chromedriver.exe"  # Substitua pelo caminho real para o ChromeDriver
+        self.service = Service(chrome_driver_path)
         self.navegador = None
         self.link = "https://jdsn-pft.deere.com/pft/servlet/com.deere.u90242.premiumfreight.view.servlets.PremiumFreightServlet"
 
@@ -345,3 +345,5 @@ class AutomacaoPfr:
 
         except (ConnectionRefusedError, http.client.RemoteDisconnected):
             print("Aplicação Encerrada")
+
+
