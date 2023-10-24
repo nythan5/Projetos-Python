@@ -4,7 +4,6 @@ from ttkthemes import ThemedTk
 from CidaTour.database import ConexaoBancoDados
 from tkinter import messagebox
 
-
 class ListarClientesViagem:
     def __init__(self):
         self.janela = ThemedTk(theme="clam")
@@ -25,12 +24,22 @@ class ListarClientesViagem:
         self.label_num_pessoas = ttk.Label(self.frame, text="")
         self.label_num_pessoas.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
-        # Crie uma área de texto para listar os clientes vinculados
-        self.clientes_text = tk.Text(self.frame, wrap=tk.WORD, width=40, height=10)
-        self.clientes_text.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
+        # Crie um Listbox para listar os clientes vinculados
+        self.clientes_listbox = tk.Listbox(self.frame, width=40, height=10)
+        self.clientes_listbox.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
+        self.clientes_listbox.bind("<Button-1>", self.selecionar_cliente)  # Adicione um evento de clique
+
+        # Adicione um botão para deletar um cliente
+        self.botao_deletar = ttk.Button(self.frame, text="Deletar Cliente", command=self.deletar_cliente)
+        self.botao_deletar.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
         # Carregue as viagens ativas no Combobox
         self.carregar_viagens_ativas()
+
+        # Variáveis para armazenar o cliente selecionado
+        self.cliente_selecionado = None
+        self.viagem_selecionada = None
+        self.cliente_id_selecionado = None
 
     def carregar_viagens_ativas(self):
         # Conecte-se ao banco de dados
@@ -45,12 +54,10 @@ class ListarClientesViagem:
             viagens_ativas = cursor.fetchall()
 
             # Obtenha a lista de títulos das viagens ativas
-            titulos_viagens_ativas = [viagem[0] for viagem in viagens_ativas]
+            titulos_viagens_ativas = [viagens[0] for viagens in viagens_ativas]
 
             # Atualize o Combobox com os títulos das viagens ativas
             self.combobox_viagem['values'] = titulos_viagens_ativas
-
-            return titulos_viagens_ativas
 
         except Exception as e:
             print(f"Erro ao carregar viagens ativas: {e}")
@@ -58,11 +65,10 @@ class ListarClientesViagem:
         finally:
             cursor.close()
             conexao.desconectar()
-            return []
 
     def listar_clientes_por_viagem(self, event):
         # Obter a viagem selecionada do ComboBox
-        viagem_selecionada = self.combobox_viagem.get()
+        self.viagem_selecionada = self.combobox_viagem.get()
 
         # Conecte-se ao banco de dados
         conexao = ConexaoBancoDados()
@@ -73,20 +79,21 @@ class ListarClientesViagem:
 
             # Execute uma consulta para obter os clientes vinculados a essa viagem
             cursor.execute("""
-                SELECT c.nome
+                SELECT c.nome, c.sobrenome
                 FROM clientes c
                 JOIN viagens_clientes vc ON c.id = vc.id_cliente
                 JOIN viagens v ON vc.id_viagem = v.id
                 WHERE v.titulo = %s
-            """, (viagem_selecionada,))
+            """, (self.viagem_selecionada,))
             clientes_vinculados = cursor.fetchall()
 
-            # Limpar a área de texto
-            self.clientes_text.delete(1.0, tk.END)
+            # Limpar o Listbox
+            self.clientes_listbox.delete(0, tk.END)
 
-            # Listar os clientes vinculados na área de texto
+            # Listar os clientes vinculados no Listbox
             for cliente in clientes_vinculados:
-                self.clientes_text.insert(tk.END, cliente[0] + "\n")
+                nome_completo = f"{cliente[0]} {cliente[1]}"
+                self.clientes_listbox.insert(tk.END, nome_completo)
 
             # Atualizar a label com o número de pessoas associadas
             num_pessoas = len(clientes_vinculados)
@@ -94,6 +101,74 @@ class ListarClientesViagem:
 
         except Exception as e:
             print(f"Erro ao listar clientes por viagem: {e}")
+
+        finally:
+            cursor.close()
+            conexao.desconectar()
+
+    def selecionar_cliente(self, event):
+        try:
+            # Obtém o índice do item selecionado no Listbox
+            index = self.clientes_listbox.curselection()[0]
+
+            # Obtém o cliente selecionado
+            self.cliente_selecionado = self.clientes_listbox.get(index)
+
+            # Separe o nome do sobrenome
+            nome, sobrenome = self.cliente_selecionado.split(" ")
+
+            # Conecte-se ao banco de dados
+            conexao = ConexaoBancoDados()
+            conexao.conectar()
+
+            cursor = conexao.conn.cursor()
+
+            # Execute uma consulta para obter o ID do cliente com base no nome e sobrenome
+            cursor.execute("SELECT id FROM clientes WHERE nome = %s AND sobrenome = %s", (nome, sobrenome))
+            cliente_id = cursor.fetchone()
+            print("CLiente Selecionado",self.cliente_id_selecionado)
+
+            if cliente_id:
+                # Armazene o ID do cliente selecionado
+                self.cliente_id_selecionado = cliente_id[0]
+
+        except IndexError:
+            # Trate a exceção se nenhum cliente estiver selecionado
+            self.cliente_selecionado = None
+
+    def deletar_cliente(self):
+        if not self.cliente_selecionado or not self.viagem_selecionada:
+            messagebox.showerror("Erro", "Selecione um cliente para deletar.")
+            return
+
+        # Conecte-se ao banco de dados
+        conexao = ConexaoBancoDados()
+        conexao.conectar()
+
+        try:
+            cursor = conexao.conn.cursor()
+
+            # Separe o nome do sobrenome
+            nome, sobrenome = self.cliente_selecionado.split(" ")
+
+            # Execute uma consulta para obter o ID do cliente com base no nome e sobrenome
+            cursor.execute("SELECT id FROM clientes WHERE nome = %s AND sobrenome = %s", (nome, sobrenome))
+            cliente_id = cursor.fetchone()
+
+            if cliente_id:
+                # Execute uma consulta para desassociar o cliente da viagem
+                cursor.execute(
+                    "DELETE FROM viagens_clientes WHERE id_viagem = (SELECT id FROM viagens WHERE titulo = %s) AND id_cliente = %s",
+                    (self.viagem_selecionada, cliente_id[0]))
+                conexao.conn.commit()
+                messagebox.showinfo("Status", f"Cliente removido da viagem: {self.viagem_selecionada}")
+
+                # Atualize a lista de clientes na interface
+                self.listar_clientes_por_viagem(None)
+
+        except Exception as e:
+            print(f"Erro ao deletar cliente da viagem: {e}")
+            messagebox.showerror("Erro", f"Não foi possível deletar o cliente da viagem. {e}")
 
         finally:
             cursor.close()

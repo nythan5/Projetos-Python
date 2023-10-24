@@ -50,14 +50,14 @@ class AssociarClientesViagem:
             cursor = conexao.conn.cursor()
 
             # Execute uma consulta para obter os clientes ativos
-            cursor.execute("SELECT nome FROM clientes WHERE status_cliente = 1")
+            cursor.execute("SELECT nome, sobrenome FROM clientes WHERE status_cliente = 1")
             clientes_ativos = cursor.fetchall()
 
-            # Obtenha a lista de nomes dos clientes ativos
-            nomes_clientes_ativos = [cliente[0] for cliente in clientes_ativos]
+            # Crie uma lista de nomes completos dos clientes ativos
+            nomes_completos_clientes = [f"{cliente[0]} {cliente[1]}" for cliente in clientes_ativos]
 
-            # Preencha o Combobox de clientes com os nomes dos clientes ativos
-            self.combobox_cliente['values'] = nomes_clientes_ativos
+            # Preencha o Combobox de clientes com os nomes completos dos clientes ativos
+            self.combobox_cliente['values'] = nomes_completos_clientes
 
         except Exception as e:
             print(f"Erro ao carregar clientes ativos: {e}")
@@ -182,5 +182,7 @@ class AssociarClientesViagem:
 
         return None  # Retorna None se não encontrar a viagem com o título especificado
 
-
+if __name__ == "__main__":
+    app = AssociarClientesViagem()
+    app.janela.mainloop()
 

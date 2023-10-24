@@ -123,3 +123,8 @@ class CadastroClientes:
         else:
             tk.messagebox.showerror("Erro no Preenchimento",
                                     "Preencha os campos obrigatórios: Nome, Sobrenome, CPF e Data de Nascimento")
+
+
+if __name__ == "__main__":
+    app = CadastroClientes()
+    app.janela_cadastro.mainloop()
