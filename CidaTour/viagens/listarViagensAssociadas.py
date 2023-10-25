@@ -3,6 +3,8 @@ from tkinter import ttk
 from ttkthemes import ThemedTk
 from CidaTour.database import ConexaoBancoDados
 from tkinter import messagebox
+import pandas as pd
+from tkinter import filedialog
 
 class ListarClientesViagem:
     def __init__(self):
@@ -27,11 +29,15 @@ class ListarClientesViagem:
         # Crie um Listbox para listar os clientes vinculados
         self.clientes_listbox = tk.Listbox(self.frame, width=40, height=10)
         self.clientes_listbox.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
-        self.clientes_listbox.bind("<Button-1>", self.selecionar_cliente)  # Adicione um evento de clique
+        self.clientes_listbox.bind("<Button-1>", self.selecionar_cliente)
 
         # Adicione um botão para deletar um cliente
         self.botao_deletar = ttk.Button(self.frame, text="Deletar Cliente", command=self.deletar_cliente)
         self.botao_deletar.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
+
+        # Botão "Exportar para Excel"
+        export_button = ttk.Button(self.frame, text="Exportar para Excel", command=self.exportar_para_excel)
+        export_button.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
 
         # Carregue as viagens ativas no Combobox
         self.carregar_viagens_ativas()
@@ -126,7 +132,7 @@ class ListarClientesViagem:
             # Execute uma consulta para obter o ID do cliente com base no nome e sobrenome
             cursor.execute("SELECT id FROM clientes WHERE nome = %s AND sobrenome = %s", (nome, sobrenome))
             cliente_id = cursor.fetchone()
-            print("CLiente Selecionado",self.cliente_id_selecionado)
+            print("CLiente Selecionado", self.cliente_id_selecionado)
 
             if cliente_id:
                 # Armazene o ID do cliente selecionado
@@ -174,6 +180,44 @@ class ListarClientesViagem:
             cursor.close()
             conexao.desconectar()
 
+    def exportar_para_excel(self):
+        if not self.viagem_selecionada:
+            messagebox.showerror("Erro", "Selecione uma viagem para exportar.")
+            return
+
+        # Conecte-se ao banco de dados
+        conexao = ConexaoBancoDados()
+        conexao.conectar()
+
+        try:
+            cursor = conexao.conn.cursor()
+
+            # Execute uma consulta para obter os clientes vinculados a essa viagem
+            cursor.execute("""
+                SELECT c.nome, c.sobrenome, c.rg, c.cpf, c.telefone
+                FROM clientes c
+                JOIN viagens_clientes vc ON c.id = vc.id_cliente
+                JOIN viagens v ON vc.id_viagem = v.id
+                WHERE v.titulo = %s
+            """, (self.viagem_selecionada,))
+            clientes_vinculados = cursor.fetchall()
+
+            # Criar um DataFrame com os clientes
+            df = pd.DataFrame(clientes_vinculados, columns=["Nome", "Sobrenome", "RG", "CPF", "Telefone"])
+
+            # Solicitar o local de salvamento do arquivo Excel
+            file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")])
+
+            if file_path:
+                df.to_excel(file_path, index=False)
+                messagebox.showinfo("Sucesso", f"Lista de clientes exportada com sucesso para {file_path}")
+
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao exportar lista de clientes: {e}")
+
+        finally:
+            cursor.close()
+            conexao.desconectar()
 
 if __name__ == "__main__":
     app = ListarClientesViagem()

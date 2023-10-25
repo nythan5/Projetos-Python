@@ -1,10 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
 from ttkthemes import ThemedTk
-from tkcalendar import DateEntry  # Importar o widget DateEntry
+from tkcalendar import DateEntry
 from CidaTour.database import ConexaoBancoDados
 from tkinter import messagebox
 from datetime import datetime
+import pandas as pd
+from tkinter import filedialog
 
 class ListaViagens:
     def __init__(self):
@@ -35,6 +37,10 @@ class ListaViagens:
 
         # Lidar com eventos de clique duplo para edição
         self.tree.bind("<Double-1>", self.editar_viagem)
+
+        # Botão "Exportar para Excel"
+        export_button = ttk.Button(self.frame, text="Exportar para Excel", command=self.exportar_para_excel)
+        export_button.grid(row=1, column=0, pady=10)
 
     def carregar_viagens(self):
         # Antes de carregar as viagens, limpe a árvore
@@ -157,4 +163,31 @@ class ListaViagens:
 
         janela_edicao.mainloop()
 
+    def exportar_para_excel(self):
+        conexao = ConexaoBancoDados()
+        conexao.conectar()
 
+        try:
+            cursor = conexao.conn.cursor()
+            cursor.execute("SELECT * FROM viagens")
+            viagens = cursor.fetchall()
+
+            df = pd.DataFrame(viagens, columns=["ID", "Título", "Descrição",
+                                                "Data Check-In", "Data Check-Out", "Custo", "Status Viagem", "Data_Cadastro"])
+
+            file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")])
+
+            if file_path:
+                df.to_excel(file_path, index=False)
+                messagebox.showinfo("Sucesso", f"Lista de viagens exportada com sucesso para {file_path}")
+
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao exportar lista de viagens: {e}")
+
+        finally:
+            cursor.close()
+            conexao.desconectar()
+
+if __name__ == "__main__":
+    app = ListaViagens()
+    app.janela_lista.mainloop()

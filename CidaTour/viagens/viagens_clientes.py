@@ -105,30 +105,57 @@ class AssociarClientesViagem:
         # Obter o ID da viagem a partir do banco de dados usando o método da classe
         id_viagem = self.obter_id_viagem_por_titulo(viagem_selecionada)
 
+        print("IDs", id_viagem, id_cliente)
+
         if id_cliente is not None and id_viagem is not None:
-            # Conecte-se ao banco de dados
+            # Verifique se o cliente já está associado à viagem
+            if not self.verificar_associacao_cliente_viagem(id_cliente, id_viagem):
+                # Conecte-se ao banco de dados
+                conexao = ConexaoBancoDados()
+                conexao.conectar()
+
+                try:
+                    cursor = conexao.conn.cursor()
+
+                    # Certifique-se de que id_cliente e id_viagem sejam valores inteiros ou adequados ao tipo de dados da tabela
+                    query = f"INSERT INTO viagens_clientes (id_cliente, id_viagem) VALUES ({id_cliente}, {id_viagem})"
+                    cursor.execute(query)
+
+                    # Commit para salvar as alterações no banco de dados
+                    conexao.conn.commit()
+
+                    messagebox.showinfo("Status", f"Cliente associado à viagem {viagem_selecionada}")
+
+                except Exception as e:
+                    print(f"Erro ao associar cliente à viagem: {e}")
+                    messagebox.showerror("Erro ao associar cliente à viagem", f"Erro: {e}")
+
+                finally:
+                    cursor.close()
+                    conexao.desconectar()
+            else:
+                messagebox.showwarning("Aviso", "O cliente já está associado a esta viagem.")
+
+    def verificar_associacao_cliente_viagem(self, id_cliente, id_viagem):
+        try:
             conexao = ConexaoBancoDados()
             conexao.conectar()
+            cursor = conexao.conn.cursor()
 
-            try:
-                cursor = conexao.conn.cursor()
+            # Consulta SQL parametrizada para verificar a associação do cliente à viagem
+            query = "SELECT id FROM viagens_clientes WHERE id_cliente = %s AND id_viagem = %s"
+            cursor.execute(query, (id_cliente, id_viagem))
+            resultado = cursor.fetchone()
 
-                # Certifique-se de que id_cliente e id_viagem sejam valores inteiros ou adequados ao tipo de dados da tabela
-                query = f"INSERT INTO viagens_clientes (id_cliente, id_viagem) VALUES ({id_cliente}, {id_viagem})"
-                cursor.execute(query)
+            return resultado is not None  # Retorna True se já existe uma associação, senão False
 
-                # Commit para salvar as alterações no banco de dados
-                conexao.conn.commit()
+        except Exception as e:
+            print(f"Erro ao verificar associação do cliente à viagem: {e}")
+            return False  # Em caso de erro, retorne False para evitar associação duplicada
 
-                messagebox.showinfo("Status", f"CLiente Associado a viagem {viagem_selecionada} ")
-
-            except Exception as e:
-                print(f"Erro ao associar cliente à viagem: {e}")
-                messagebox.showerror("Erro ao associar cliente à viagem",f"Erro: {e} ")
-
-            finally:
-                cursor.close()
-                conexao.desconectar()
+        finally:
+            cursor.close()
+            conexao.desconectar()
 
     def obter_id_cliente_por_nome(self, nome_cliente):
         try:
@@ -136,24 +163,29 @@ class AssociarClientesViagem:
             conexao.conectar()
             cursor = conexao.conn.cursor()
 
-            # Consulta SQL parametrizada para obter o ID do cliente com base no nome
-            query = "SELECT id FROM clientes WHERE nome = %s"
-            print("Query:", query)  # Adicione esta linha para imprimir a consulta
-            cursor.execute(query, (nome_cliente,))
+            # Separe o nome e sobrenome
+            nome, sobrenome = nome_cliente.split()
+
+            # Consulta SQL parametrizada para obter o ID do cliente com base no nome e sobrenome
+            query = "SELECT id FROM clientes WHERE nome = %s AND sobrenome = %s"
+            cursor.execute(query, (nome, sobrenome))
             resultado = cursor.fetchone()
-            print("Resultado:", resultado)  # Adicione esta linha para imprimir o resultado
 
             if resultado:
                 id_cliente = resultado[0]
+                print(f"ID do cliente encontrado: {id_cliente}")
                 return id_cliente
+            else:
+                print("Cliente não encontrado no banco de dados.")
+                return None  # Retorne None se o cliente não for encontrado
 
         except Exception as e:
             print(f"Erro ao obter ID do cliente: {e}")
+            return None  # Retorne None em caso de erro
+
         finally:
             cursor.close()
             conexao.desconectar()
-
-        return None  # Retorna None se não encontrar o cliente com o nome especificado
 
     def obter_id_viagem_por_titulo(self, titulo):
         try:
@@ -163,16 +195,12 @@ class AssociarClientesViagem:
 
             # Consulta SQL para obter o ID da viagem com base no título
             query = "SELECT id FROM viagens WHERE titulo = %s"
-            print("Query:", query)  # Adicione esta linha para imprimir a consulta
-            print("Titulo", titulo)
             cursor.execute(query, (titulo,))
             resultado = cursor.fetchone()
-            print("Resultado:", resultado)  # Adicione esta linha para imprimir o resultado
 
             if resultado:
                 id_viagem = resultado[0]
                 return id_viagem
-
 
         except Exception as e:
             print(f"Erro ao obter ID da viagem: {e}")
@@ -185,4 +213,3 @@ class AssociarClientesViagem:
 if __name__ == "__main__":
     app = AssociarClientesViagem()
     app.janela.mainloop()
-

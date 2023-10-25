@@ -1,10 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
+from openpyxl import Workbook
 from ttkthemes import ThemedTk
 from CidaTour.database import ConexaoBancoDados
 from tkinter import messagebox
 from tkcalendar import Calendar
 from datetime import datetime
+from tkinter import filedialog
 
 class RegistroPagamentoViagem:
     def __init__(self):
@@ -32,7 +34,9 @@ class RegistroPagamentoViagem:
         self.valor_total_pago = {}
 
         # Botão para cadastrar pagamento
-        ttk.Button(self.frame, text="Cadastrar Pagamento", command=self.abrir_cadastro_pagamento).grid(row=2, column=0, columnspan=2, padx=5, pady=10)
+        ttk.Button(self.frame, text="Cadastrar Pagamento", command=self.abrir_cadastro_pagamento).grid(row=4, column=0, columnspan=2, padx=5, pady=5)
+
+        ttk.Button(self.frame, text="Exportar para Excel", command=self.exportar_pagamentos_para_excel).grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
     def carregar_viagens(self):
         conexao = ConexaoBancoDados()
@@ -63,7 +67,7 @@ class RegistroPagamentoViagem:
         try:
             cursor = conexao.conn.cursor()
             cursor.execute("""
-                SELECT c.id, c.nome, SUM(p.valor_pago)
+                SELECT c.id, c.nome, c.sobrenome, SUM(p.valor_pago)
                 FROM clientes c
                 JOIN viagens_clientes vc ON c.id = vc.id_cliente
                 JOIN viagens v ON vc.id_viagem = v.id
@@ -78,8 +82,8 @@ class RegistroPagamentoViagem:
 
             for cliente in clientes_vinculados:
                 id_cliente = cliente[0]
-                nome = cliente[1]
-                valor_total_pago = float(cliente[2] if cliente[2] is not None else 0)
+                nome = f"{cliente[1]} {cliente[2]}"
+                valor_total_pago = float(cliente[3] if cliente[3] is not None else 0)
                 valor_custo = self.obter_valor_custo(viagem_selecionada)
                 valor_restante = valor_custo - valor_total_pago
                 self.treeview.insert("", "end", values=(nome, valor_total_pago, valor_restante, id_cliente))
@@ -118,10 +122,11 @@ class RegistroPagamentoViagem:
     def abrir_pagamentos_cliente(self, event):
         item_selecionado = self.treeview.selection()[0]
         id_cliente = self.treeview.item(item_selecionado, 'values')[3]
-        nome_cliente = self.treeview.item(item_selecionado, 'values')[0]
+        nome_cliente_completo = self.treeview.item(item_selecionado, 'values')[0]
+        nome_cliente = nome_cliente_completo.split()[0]
         viagem_selecionada = self.combobox_viagem.get()
 
-        id_viagem_cliente = self.obter_id_viagens_clientes(nome_cliente,viagem_selecionada)
+        id_viagem_cliente = self.obter_id_viagens_clientes(nome_cliente, viagem_selecionada)
 
         # Abra uma nova janela para exibir os pagamentos do cliente
         janela_pagamentos_cliente = ThemedTk(theme="clam")
@@ -302,6 +307,27 @@ class RegistroPagamentoViagem:
 
     def run(self):
         self.janela.mainloop()
+
+    def exportar_pagamentos_para_excel(self):
+        arquivo = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Arquivos Excel", "*.xlsx")])
+
+        if arquivo:
+            wb = Workbook()
+            ws = wb.active
+
+            # Adicione cabeçalhos às colunas
+            ws.append(["Nome", "Valor Pago", "Saldo Restante"])
+
+            # Obtenha os dados da Treeview
+            for item in self.treeview.get_children():
+                nome = self.treeview.item(item, 'values')[0]
+                valor_pago = self.treeview.item(item, 'values')[1]
+                saldo_restante = self.treeview.item(item, 'values')[2]
+                ws.append([nome, valor_pago, saldo_restante])
+
+            wb.save(arquivo)
+
+            messagebox.showinfo("Exportação Concluída", "Os dados foram exportados para Excel com sucesso.")
 
 if __name__ == "__main__":
     app = RegistroPagamentoViagem()

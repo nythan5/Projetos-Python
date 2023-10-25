@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
+import pandas as pd
 from ttkthemes import ThemedTk
 from CidaTour.database import ConexaoBancoDados
 from tkinter import messagebox
@@ -22,6 +24,10 @@ class ListaClientes:
 
         self.tree.column("Ativo", width=80)  # Largura da coluna "Ativo"
         self.tree.grid(row=0, column=0)
+
+        # Botão "Exportar para Excel"
+        export_button = ttk.Button(self.frame, text="Exportar para Excel", command=self.exportar_para_excel)
+        export_button.grid(row=1, column=0, pady=10)
 
         # Configurar as cores das linhas de grade
         self.tree.style = ttk.Style()
@@ -145,3 +151,32 @@ class ListaClientes:
 
         janela_edicao.mainloop()
 
+    def exportar_para_excel(self):
+        conexao = ConexaoBancoDados()
+        conexao.conectar()
+
+        try:
+            cursor = conexao.conn.cursor()
+            cursor.execute("SELECT * FROM clientes")
+            clientes = cursor.fetchall()
+
+            df = pd.DataFrame(clientes, columns=["ID", "Nome", "Sobrenome", "RG", "CPF",
+                                                "Data de Nascimento", "Contato", "Status_Cliente", "Data_Cadastro"])
+
+            file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")])
+
+            if file_path:
+                # Salvar o DataFrame no arquivo Excel
+                df.to_excel(file_path, index=False)
+                messagebox.showinfo("Sucesso", f"Dados exportados com sucesso para {file_path}")
+
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao exportar dados: {e}")
+
+        finally:
+            cursor.close()
+            conexao.desconectar()
+
+if __name__ == "__main__":
+    app = ListaClientes()
+    app.janela_lista.mainloop()
