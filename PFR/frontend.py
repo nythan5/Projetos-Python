@@ -1,9 +1,7 @@
 import threading
 import tkinter as tk
-from tkinter import ttk
 from backend import AutomacaoPfr
 import sys
-from PIL import Image
 from PIL import ImageTk
 
 
