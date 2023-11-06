@@ -109,8 +109,17 @@ class AutomacaoPfr:
             time.sleep(self.espera_longa)
             self.navegador.find_element('xpath', '//*[@id="form61"]/div[2]/input').click()
             time.sleep(self.espera_login)
-        except (ConnectionRefusedError, http.client.RemoteDisconnected):
-            print("Aplicação Encerrada")
+            
+        except selenium.common.exceptions.NoSuchElementException:
+            time.sleep(self.espera_longa)
+            self.navegador.find_element('xpath', '//*[@id="input29"]').send_keys(self.login)
+            time.sleep(0.5)
+            self.navegador.find_element('xpath', '//*[@id="input37"]').send_keys(self.senha)
+            time.sleep(0.5)
+            self.navegador.find_element('xpath', '//*[@id="form21"]/div[2]/input').click()
+            time.sleep(self.espera_longa)
+            self.navegador.find_element('xpath', '//*[@id="form62"]/div[2]/input').click()
+            time.sleep(self.espera_login)
 
     def fechar_navegador(self):
         if self.navegador:
