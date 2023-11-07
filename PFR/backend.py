@@ -13,7 +13,6 @@ from pynput import mouse
 from tkinter import messagebox
 
 
-
 class AutomacaoPfr:
     def __init__(self):
         # Variaveis Globais
@@ -59,14 +58,11 @@ class AutomacaoPfr:
         self.ano_entrega = ""
         self.hora_entrega = ""
 
-
     def set_callback_ok(self, callback):
         self.callback_ok = callback
 
     def set_callback_nok(self, callback):
         self.callback_nok = callback
-
-
 
     def add_to_list_pfr_preenchidas(self, pfr):
         self.lista_pfr_preenchidas.append(pfr)
@@ -77,7 +73,6 @@ class AutomacaoPfr:
         self.lista_pfr_naorealizadas.append(pfr)
         if self.callback_nok:
             self.callback_nok(pfr)
-
 
     def bloquear_scroll(self, x, y, dx, dy):
         return False
@@ -110,7 +105,7 @@ class AutomacaoPfr:
             time.sleep(self.espera_longa)
             self.navegador.find_element('xpath', '//*[@id="form61"]/div[2]/input').click()
             time.sleep(self.espera_login)
-            
+
         except selenium.common.exceptions.NoSuchElementException:
             time.sleep(self.espera_longa)
             self.navegador.find_element('xpath', '//*[@id="input29"]').send_keys(self.login)
@@ -149,7 +144,6 @@ class AutomacaoPfr:
             self.peso_formatado = "{:.2f}".format(peso1)
             self.measure = "KG"
             self.comments = str(planilha_carregada.loc[i, 'Observações']).replace('nan', '-')
-
 
             if self.peso_formatado.startswith("0"):
                 self.peso_formatado = "1"
@@ -237,12 +231,9 @@ class AutomacaoPfr:
 
             self.preencher_formulario()
 
-
-
         self.navegador.quit()
         self.service.stop()
         messagebox.showinfo("Processo Finalizado", "PFR's preenchidas com sucesso !")
-
 
     def preencher_formulario(self):
         time.sleep(self.espera_longa)
