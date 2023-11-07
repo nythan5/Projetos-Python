@@ -10,6 +10,7 @@ from datetime import datetime
 import pandas as pd
 import pytz
 from pynput import mouse
+from tkinter import messagebox
 
 
 
@@ -240,6 +241,8 @@ class AutomacaoPfr:
 
         self.navegador.quit()
         self.service.stop()
+        messagebox.showinfo("Processo Finalizado", "PFR's preenchidas com sucesso !")
+
 
     def preencher_formulario(self):
         time.sleep(self.espera_longa)
