@@ -34,7 +34,7 @@ class AutomacaoPfr:
 
         # Service Navegador
         chrome_driver_path = r"C:\Users\Gabriel Nathan Dias\Documents\ChromeDriver\chromedriver.exe"  # Substitua pelo caminho real para o ChromeDriver
-        self.service = Service(chrome_driver_path)
+        self.service = Service(ChromeDriverManager().install())
         self.navegador = None
         self.link = "https://jdsn-pft.deere.com/pft/servlet/com.deere.u90242.premiumfreight.view.servlets.PremiumFreightServlet"
 
@@ -106,7 +106,8 @@ class AutomacaoPfr:
             self.navegador.find_element('xpath', '//*[@id="form61"]/div[2]/input').click()
             time.sleep(self.espera_login)
 
-        except selenium.common.exceptions.NoSuchElementException:
+        except Exception as e:
+
             time.sleep(self.espera_longa)
             self.navegador.find_element('xpath', '//*[@id="input29"]').send_keys(self.login)
             time.sleep(0.5)
