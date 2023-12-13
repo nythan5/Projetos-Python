@@ -8,7 +8,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 from datetime import datetime
 import pandas as pd
-import pytz
 from pynput import mouse
 from tkinter import messagebox
 
@@ -16,7 +15,7 @@ from tkinter import messagebox
 class AutomacaoPfr:
     def __init__(self):
         # Variaveis Globais
-        self.caminho_planilha = r"C:\Users\Gabriel Nathan Dias\OneDrive - Grupo Mirassol\RPA\PFR\Relatorio mensal PFR-RPA.xlsx"
+        self.caminho_planilha = r"C:\Users\N-ALP-ILC-0003I.N-ALP-ILC-0003\OneDrive - Grupo Mirassol\RPA\PFR\Relatorio mensal PFR-RPA.xlsx"
 
         # Variaveis de Login
         self.login = "YFAM2IY"

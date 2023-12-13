@@ -2,7 +2,7 @@ import threading
 import tkinter as tk
 from backend import AutomacaoPfr
 import sys
-from PIL import ImageTk
+
 
 
 class InterfaceGrafica:
@@ -12,8 +12,7 @@ class InterfaceGrafica:
         self.janela.geometry("350x320")
 
         # Configurar ícone da aplicação
-        self.icon = ImageTk.PhotoImage(file="../PFR/icon/list_notes_930.ico")
-        self.janela.iconphoto(True, self.icon)
+
 
         # Status da aplicação
         self.event = threading.Event()
