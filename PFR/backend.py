@@ -10,6 +10,7 @@ from datetime import datetime
 import pandas as pd
 from pynput import mouse
 from tkinter import messagebox
+import pytz
 
 
 class AutomacaoPfr:
@@ -19,7 +20,7 @@ class AutomacaoPfr:
 
         # Variaveis de Login
         self.login = "YFAM2IY"
-        self.senha = "j918200_Mm123"
+        self.senha = "j918200_Mm124"
 
         # Lista PFR Preenchidas
         self.lista_pfr_preenchidas = []
@@ -114,7 +115,14 @@ class AutomacaoPfr:
             time.sleep(0.5)
             self.navegador.find_element('xpath', '//*[@id="form21"]/div[2]/input').click()
             time.sleep(self.espera_longa)
-            self.navegador.find_element('xpath', '//*[@id="form62"]/div[2]/input').click()
+
+            try:
+                self.navegador.find_element('xpath', '//*[@id="form62"]/div[2]/input').click()
+
+            except Exception :
+
+                self.navegador.find_element('xpath', '//*[@id="form61"]/div[2]/input').click()
+                                                    
             time.sleep(self.espera_login)
 
     def fechar_navegador(self):
