@@ -4,7 +4,6 @@ from backend import AutomacaoPfr
 import sys
 
 
-
 class InterfaceGrafica:
     def __init__(self, janela, lista_pfr_preenchidas, lista_pfr_com_erro):
         self.janela = janela
@@ -12,7 +11,6 @@ class InterfaceGrafica:
         self.janela.geometry("350x320")
 
         # Configurar ícone da aplicação
-
 
         # Status da aplicação
         self.event = threading.Event()
@@ -25,13 +23,14 @@ class InterfaceGrafica:
         self.frame_botoes.pack(side=tk.BOTTOM, padx=5, pady=4)
 
         # Botão "Iniciar"
-        self.botao_iniciar = tk.Button(self.frame_botoes, text="Iniciar Processo", command=self.iniciar, width=15, height=3)
+        self.botao_iniciar = tk.Button(
+            self.frame_botoes, text="Iniciar Processo", command=self.iniciar, width=15, height=3)
         self.botao_iniciar.pack(side=tk.LEFT, padx=5, pady=4)
 
         # Botão "Finalizar"
-        self.botao_finalizar = tk.Button(self.frame_botoes, text="Parar Processo", command=self.finalizar, width=15, height=3)
+        self.botao_finalizar = tk.Button(
+            self.frame_botoes, text="Parar Processo", command=self.finalizar, width=15, height=3)
         self.botao_finalizar.pack(side=tk.RIGHT, padx=10, pady=4)
-
 
         # Frame dos ListBox
 
@@ -40,21 +39,25 @@ class InterfaceGrafica:
 
         # Rótulo acima da Listbox
         self.label_lista_ok = tk.Label(self.janela,
-                                    text=f" < -- PFR's confirmada: {len(self.lista_pfr_preenchidas)} "
-                                         f"de {self.total_linhas}")
+                                       text=f" < -- PFR's confirmada: {len(self.lista_pfr_preenchidas)} "
+                                       f"de {self.total_linhas}")
         self.label_lista_ok.pack(side=tk.TOP, anchor=tk.CENTER, padx=5, pady=2)
 
         # Lista de PFRs preenchidas (widget)
         self.lista_pfr_widget = tk.Listbox(self.frame_listbox)
-        self.lista_pfr_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.lista_pfr_widget.pack(
+            side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         # Rótulo acima da Listbox
-        self.label_lista_nok = tk.Label(self.janela, text=f"PFR's com erro --> : {len(self.lista_com_erros)}")
-        self.label_lista_nok.pack(side=tk.BOTTOM, anchor=tk.CENTER, padx=5, pady=2)
+        self.label_lista_nok = tk.Label(
+            self.janela, text=f"PFR's com erro --> : {len(self.lista_com_erros)}")
+        self.label_lista_nok.pack(
+            side=tk.BOTTOM, anchor=tk.CENTER, padx=5, pady=2)
 
         # Lista de PFRs com erro (widget)
         self.lista_pfr_com_erro_widget = tk.Listbox(self.frame_listbox)
-        self.lista_pfr_com_erro_widget.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.lista_pfr_com_erro_widget.pack(
+            side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         # Callback que atualiza a listagem na Interface Grafica
         app.set_callback_ok(self.atualizar_lista_ok)
@@ -73,7 +76,7 @@ class InterfaceGrafica:
     def atualizar_label(self):
         total_elementos = len(self.lista_pfr_widget.get(0, tk.END))
         self.label_lista_ok.config(text=f" < -- PFR's confirmada: {len(lista_pfr_preenchidas)} "
-                                     f"de {self.total_linhas}")
+                                   f"de {self.total_linhas}")
 
     def codigo_a_executar(self):
         app.iniciar_navegador()
@@ -105,5 +108,5 @@ if __name__ == "__main__":
     app = AutomacaoPfr()
     lista_pfr_preenchidas = app.lista_pfr_preenchidas
     lista_pfr_com_erro = app.lista_pfr_naorealizadas
-    tela = InterfaceGrafica(janela_principal, lista_pfr_preenchidas, lista_pfr_com_erro)
+    tela = InterfaceGrafica(janela_principal, lista_pfr_preenchidas, lista_pfr_com_erro)  # noqa E501
     janela_principal.mainloop()

@@ -119,7 +119,7 @@ class Interface:
                 nomes_planejadoresjd = df_completo['MRP Controller Name'].unique(
                 )
 
-                documentos_path = os.path.expanduser('~\\Documentos')
+                documentos_path = os.path.expanduser('~\\Documents')
 
                 for nome in nomes_planejadoresjd:
                     df_individual = df_completo[df_completo['MRP Controller Name'] == nome]
