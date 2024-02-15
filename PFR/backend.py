@@ -33,7 +33,8 @@ class AutomacaoPfr:
         self.espera_login = 30
 
         # Service Navegador
-        chrome_driver_path = r"C:\Users\Gabriel Nathan Dias\Documents\ChromeDriver\chromedriver.exe"  # Substitua pelo caminho real para o ChromeDriver
+        # Substitua pelo caminho real para o ChromeDriver
+        chrome_driver_path = r"C:\Users\Gabriel Nathan Dias\Documents\ChromeDriver\chromedriver.exe"
         self.service = Service(ChromeDriverManager().install())
         self.navegador = None
         self.link = "https://jdsn-pft.deere.com/pft/servlet/com.deere.u90242.premiumfreight.view.servlets.PremiumFreightServlet"
@@ -84,7 +85,8 @@ class AutomacaoPfr:
             total_linhas = len(planilha)
             return planilha, total_linhas
         except FileNotFoundError:
-            print(f"Arquivo não encontrado no caminho: {self.caminho_planilha}")
+            print(
+                f"Arquivo não encontrado no caminho: {self.caminho_planilha}")
             return None
 
     def iniciar_navegador(self):
@@ -97,32 +99,41 @@ class AutomacaoPfr:
             # Fazendo Login no site
 
             time.sleep(self.espera_longa)
-            self.navegador.find_element('xpath', '//*[@id="input28"]').send_keys(self.login)
+            self.navegador.find_element(
+                'xpath', '//*[@id="input28"]').send_keys(self.login)
             time.sleep(0.5)
-            self.navegador.find_element('xpath', '//*[@id="input36"]').send_keys(self.senha)
+            self.navegador.find_element(
+                'xpath', '//*[@id="input36"]').send_keys(self.senha)
             time.sleep(0.5)
-            self.navegador.find_element('xpath', '//*[@id="form20"]/div[2]/input').click()
+            self.navegador.find_element(
+                'xpath', '//*[@id="form20"]/div[2]/input').click()
             time.sleep(self.espera_longa)
-            self.navegador.find_element('xpath', '//*[@id="form61"]/div[2]/input').click()
+            self.navegador.find_element(
+                'xpath', '//*[@id="form61"]/div[2]/input').click()
             time.sleep(self.espera_login)
 
         except Exception as e:
 
             time.sleep(self.espera_longa)
-            self.navegador.find_element('xpath', '//*[@id="input29"]').send_keys(self.login)
+            self.navegador.find_element(
+                'xpath', '//*[@id="input29"]').send_keys(self.login)
             time.sleep(0.5)
-            self.navegador.find_element('xpath', '//*[@id="input37"]').send_keys(self.senha)
+            self.navegador.find_element(
+                'xpath', '//*[@id="input37"]').send_keys(self.senha)
             time.sleep(0.5)
-            self.navegador.find_element('xpath', '//*[@id="form21"]/div[2]/input').click()
+            self.navegador.find_element(
+                'xpath', '//*[@id="form21"]/div[2]/input').click()
             time.sleep(self.espera_longa)
 
             try:
-                self.navegador.find_element('xpath', '//*[@id="form62"]/div[2]/input').click()
+                self.navegador.find_element(
+                    'xpath', '//*[@id="form62"]/div[2]/input').click()
 
-            except Exception :
+            except Exception:
 
-                self.navegador.find_element('xpath', '//*[@id="form61"]/div[2]/input').click()
-                                                    
+                self.navegador.find_element(
+                    'xpath', '//*[@id="form61"]/div[2]/input').click()
+
             time.sleep(self.espera_login)
 
     def fechar_navegador(self):
@@ -143,15 +154,18 @@ class AutomacaoPfr:
 
         # Laço para rodar todas as linhas da planilha
         for i, self.pfr in enumerate(planilha_carregada["PFR"]):
-            self.codigo_transportadora = planilha_carregada.loc[i, 'Codigo_Transportadora']
+            self.codigo_transportadora = planilha_carregada.loc[i,
+                                                                'Codigo_Transportadora']
             self.tipo_numero_referencia = "Carrier Pro"
             self.cte = planilha_carregada.loc[i, 'CT-e']
-            self.valor_frete = str(planilha_carregada.loc[i, 'Valor do Frete']).replace(',', '.')
+            self.valor_frete = str(
+                planilha_carregada.loc[i, 'Valor do Frete']).replace(',', '.')
             self.currency = "BRL"
             peso1 = planilha_carregada.loc[i, 'Peso']
             self.peso_formatado = "{:.2f}".format(peso1)
             self.measure = "KG"
-            self.comments = str(planilha_carregada.loc[i, 'Observações']).replace('nan', '-')
+            self.comments = str(
+                planilha_carregada.loc[i, 'Observações']).replace('nan', '-')
 
             if self.peso_formatado.startswith("0"):
                 self.peso_formatado = "1"
@@ -162,16 +176,20 @@ class AutomacaoPfr:
             fuso_horario_brasil = pytz.timezone('America/Sao_Paulo')
 
             # Obtém o campo Data e Hora de Coleta da Planilha sem formatacao
-            data_hora_coleta_str = planilha_carregada.loc[i, 'Data e Horário da Coleta']
+            data_hora_coleta_str = planilha_carregada.loc[i,
+                                                          'Data e Horário da Coleta']
 
             if isinstance(data_hora_coleta_str, datetime):
-                data_hora_coleta_str = data_hora_coleta_str.strftime("%d/%m/%Y %H:%M")
+                data_hora_coleta_str = data_hora_coleta_str.strftime(
+                    "%d/%m/%Y %H:%M")
 
             # Converte a string para um objeto de data e hora
-            data_hora_coleta = datetime.strptime(data_hora_coleta_str, "%d/%m/%Y %H:%M")
+            data_hora_coleta = datetime.strptime(
+                data_hora_coleta_str, "%d/%m/%Y %H:%M")
 
             # Converte a data e hora da coleta para o fuso horário do Brasil
-            data_hora_coleta_brasil = fuso_horario_brasil.localize(data_hora_coleta)
+            data_hora_coleta_brasil = fuso_horario_brasil.localize(
+                data_hora_coleta)
 
             # Parseando as informaçoes de data e hora ajustadas para o fuso horário do Brasil
             self.dia_coleta = data_hora_coleta_brasil.strftime('%d')
@@ -179,20 +197,25 @@ class AutomacaoPfr:
             self.ano_coleta = data_hora_coleta_brasil.strftime('%Y')
             self.hora_coleta = data_hora_coleta_brasil.strftime('%I:%M %p')
 
-            if self.hora_coleta.startswith('0'):  # Se a hora esta 01:00 ele coloca 1:00
+            # Se a hora esta 01:00 ele coloca 1:00
+            if self.hora_coleta.startswith('0'):
                 self.hora_coleta = self.hora_coleta[1:]
 
             # Obtém o campo Data e Hora de entrega da Planilha
-            data_hora_entrega_str = planilha_carregada.loc[i, 'Previsão de Entrega']
+            data_hora_entrega_str = planilha_carregada.loc[i,
+                                                           'Previsão de Entrega']
 
             if isinstance(data_hora_entrega_str, datetime):
-                data_hora_entrega_str = data_hora_entrega_str.strftime("%d/%m/%Y %H:%M")
+                data_hora_entrega_str = data_hora_entrega_str.strftime(
+                    "%d/%m/%Y %H:%M")
 
             # Converte a string para um objeto de data e hora
-            data_hora_entrega = datetime.strptime(data_hora_entrega_str, "%d/%m/%Y %H:%M")
+            data_hora_entrega = datetime.strptime(
+                data_hora_entrega_str, "%d/%m/%Y %H:%M")
 
             # Converte a data e hora da coleta para o fuso horário do Brasil
-            data_hora_entrega_brasil = fuso_horario_brasil.localize(data_hora_entrega)
+            data_hora_entrega_brasil = fuso_horario_brasil.localize(
+                data_hora_entrega)
 
             if pd.isnull(data_hora_entrega_brasil):
                 print("")
@@ -202,9 +225,11 @@ class AutomacaoPfr:
                 self.dia_entrega = data_hora_entrega_brasil.strftime('%d')
                 self.mes_entrega = data_hora_entrega_brasil.strftime('%b')
                 self.ano_entrega = data_hora_entrega_brasil.strftime('%Y')
-                self.hora_entrega = data_hora_entrega_brasil.strftime('%I:%M %p')
+                self.hora_entrega = data_hora_entrega_brasil.strftime(
+                    '%I:%M %p')
 
-            if self.hora_entrega.startswith('0'):  # Se a hora esta 01:00 ele coloca 1:00
+            # Se a hora esta 01:00 ele coloca 1:00
+            if self.hora_entrega.startswith('0'):
                 self.hora_entrega = self.hora_entrega[1:]
 
             # Descobrindo a quantidade de Looping da seleção da transportadora
@@ -221,7 +246,7 @@ class AutomacaoPfr:
                 case 316937:  # TW
                     self.loop_transportadora = 13
 
-                case 335060:  # Piex
+                case 335060:  # Piex PIGATTO
                     self.loop_transportadora = 16
 
                 case 359070:  # Expresso Mirassol
@@ -241,42 +266,50 @@ class AutomacaoPfr:
 
         self.navegador.quit()
         self.service.stop()
-        messagebox.showinfo("Processo Finalizado", "PFR's preenchidas com sucesso !")
+        messagebox.showinfo("Processo Finalizado",
+                            "PFR's preenchidas com sucesso !")
 
     def preencher_formulario(self):
         time.sleep(self.espera_longa)
 
         try:
             try:  # Clicar em Search
-                self.navegador.find_element('xpath', '//*[@id="left_navigation"]/ul/li[4]/a').click()
+                self.navegador.find_element(
+                    'xpath', '//*[@id="left_navigation"]/ul/li[4]/a').click()
                 time.sleep(3)
 
             except selenium.common.exceptions.NoSuchElementException:
                 time.sleep(self.espera_longa)
-                self.navegador.find_element('xpath', '//*[@id="left_navigation"]/ul/li[4]/a').click()
+                self.navegador.find_element(
+                    'xpath', '//*[@id="left_navigation"]/ul/li[4]/a').click()
 
             # Digitando a PFR
-            self.navegador.find_element('xpath', '//*[@id="pfNumber"]').send_keys(self.pfr)
+            self.navegador.find_element(
+                'xpath', '//*[@id="pfNumber"]').send_keys(self.pfr)
 
             # Clicando no search final da pag
-            self.navegador.find_element('xpath', '//*[@id="content_center"]/table/tbody/tr[10]/td/center/a[1]').click()
+            self.navegador.find_element(
+                'xpath', '//*[@id="content_center"]/table/tbody/tr[10]/td/center/a[1]').click()
             time.sleep(self.espera_longa)
 
             # Clicando na PFR encontrada
-            self.navegador.find_element('xpath', '//*[@id="table01"]/tbody/tr/td[1]/a').click()
+            self.navegador.find_element(
+                'xpath', '//*[@id="table01"]/tbody/tr/td[1]/a').click()
             time.sleep(self.espera_longa)
 
             listener_mouse = mouse.Listener(on_scroll=self.bloquear_scroll)
             listener_mouse.start()  # Bloqueia o Scroll do mouse para evitar erro
 
             # Clicando na lista de carrier
-            self.navegador.find_element('xpath', '//*[@id="pendingConfList0.carrier"]').click()
+            self.navegador.find_element(
+                'xpath', '//*[@id="pendingConfList0.carrier"]').click()
 
             # Apertando a seta para baixo ate o transportador correto
             count_carrier = 0
 
             while count_carrier < self.loop_transportadora:
-                self.navegador.find_element('xpath', '//*[@id="pendingConfList0.carrier"]').send_keys(Keys.DOWN)
+                self.navegador.find_element(
+                    'xpath', '//*[@id="pendingConfList0.carrier"]').send_keys(Keys.DOWN)
                 count_carrier += 1
 
             time.sleep(self.espera_curta)
@@ -299,7 +332,8 @@ class AutomacaoPfr:
             time.sleep(self.espera_curta)
 
             # Preenchendo o currency
-            self.navegador.find_element('xpath', '//*[@id="pendingConfList0.currencyCode"]').send_keys(self.currency)
+            self.navegador.find_element(
+                'xpath', '//*[@id="pendingConfList0.currencyCode"]').send_keys(self.currency)
             time.sleep(self.espera_curta)
 
             # Preenchendo o peso
@@ -309,7 +343,8 @@ class AutomacaoPfr:
             time.sleep(self.espera_curta)
 
             # Preenchendo o measure
-            self.navegador.find_element('xpath', '//*[@id="pendingConfList0.unitOfMeasure"]').send_keys(self.measure)
+            self.navegador.find_element(
+                'xpath', '//*[@id="pendingConfList0.unitOfMeasure"]').send_keys(self.measure)
             time.sleep(self.espera_curta)
 
             # Preenchendo Data de Coleta
@@ -317,39 +352,48 @@ class AutomacaoPfr:
                 self.dia_coleta)
             time.sleep(self.espera_curta)
 
-            self.navegador.find_element(By.NAME, 'pendingConfList0.pickupETADate.monVal').send_keys(self.mes_coleta)
+            self.navegador.find_element(
+                By.NAME, 'pendingConfList0.pickupETADate.monVal').send_keys(self.mes_coleta)
             time.sleep(self.espera_curta)
 
-            self.navegador.find_element(By.NAME, 'pendingConfList0.pickupETADate.yearVal').send_keys(self.ano_coleta)
+            self.navegador.find_element(
+                By.NAME, 'pendingConfList0.pickupETADate.yearVal').send_keys(self.ano_coleta)
             time.sleep(self.espera_curta)
 
             # Preenchendo o horario
-            self.navegador.find_element(By.NAME, 'pendingConfList0.pickupETATime').send_keys(self.hora_coleta)
+            self.navegador.find_element(
+                By.NAME, 'pendingConfList0.pickupETATime').send_keys(self.hora_coleta)
 
             # Preenchendo Data de Entrega
             self.navegador.find_element('xpath', '//*[@id="pendingConfList0.deliveryETADate.dayVal"]').send_keys(
                 self.dia_entrega)
             time.sleep(self.espera_curta)
 
-            self.navegador.find_element(By.NAME, 'pendingConfList0.deliveryETADate.monVal').send_keys(self.mes_entrega)
+            self.navegador.find_element(
+                By.NAME, 'pendingConfList0.deliveryETADate.monVal').send_keys(self.mes_entrega)
             time.sleep(self.espera_curta)
 
-            self.navegador.find_element(By.NAME, 'pendingConfList0.deliveryETADate.yearVal').send_keys(self.ano_entrega)
+            self.navegador.find_element(
+                By.NAME, 'pendingConfList0.deliveryETADate.yearVal').send_keys(self.ano_entrega)
             time.sleep(self.espera_curta)
 
-            self.navegador.find_element(By.NAME, 'pendingConfList0.deliveryETATime').click()
+            self.navegador.find_element(
+                By.NAME, 'pendingConfList0.deliveryETATime').click()
             time.sleep(self.espera_curta)
 
             # Preenchendo a hora de entrega
-            self.navegador.find_element(By.NAME, 'pendingConfList0.deliveryETATime').send_keys(self.hora_entrega)
+            self.navegador.find_element(
+                By.NAME, 'pendingConfList0.deliveryETATime').send_keys(self.hora_entrega)
             time.sleep(self.espera_curta)
 
             # Escrevendo os Comments
-            self.navegador.find_element(By.NAME, 'pendingConfList0.comments').send_keys(self.comments)
+            self.navegador.find_element(
+                By.NAME, 'pendingConfList0.comments').send_keys(self.comments)
             time.sleep(self.espera_curta)
 
             # Clicando no botão de Submit
-            self.navegador.find_element('xpath', '//*[@id="content_center"]/div[2]/div[4]/div/a[3]').click()
+            self.navegador.find_element(
+                'xpath', '//*[@id="content_center"]/div[2]/div[4]/div/a[3]').click()
 
             self.add_to_list_pfr_preenchidas(self.pfr)
             print(f"PRF's preenchidas no site: {self.lista_pfr_preenchidas}")
