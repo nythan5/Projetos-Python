@@ -20,7 +20,7 @@ class AutomacaoPfr:
 
         # Variaveis de Login
         self.login = "YFAM2IY"
-        self.senha = "j918200_Mm124"
+        self.senha = "j918200_Mm125"
 
         # Lista PFR Preenchidas
         self.lista_pfr_preenchidas = []
