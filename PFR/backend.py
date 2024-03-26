@@ -235,13 +235,13 @@ class AutomacaoPfr:
             # Descobrindo a quantidade de Looping da seleção da transportadora
             match self.codigo_transportadora:
                 case 372052:  # ARMANI
-                    self.loop_transportadora = 31
+                    self.loop_transportadora = 32
 
                 case 375317:  # VF
-                    self.loop_transportadora = 37
+                    self.loop_transportadora = 38
 
                 case 361822:  # MODULAR
-                    self.loop_transportadora = 26
+                    self.loop_transportadora = 27
 
                 case 316937:  # TW
                     self.loop_transportadora = 13
@@ -250,7 +250,7 @@ class AutomacaoPfr:
                     self.loop_transportadora = 16
 
                 case 359070:  # Expresso Mirassol
-                    self.loop_transportadora = 24
+                    self.loop_transportadora = 25
 
             # Se um desses itens esta vazio ele ignora e salva numa lista de nao realizados
             if (pd.isnull(self.codigo_transportadora) or (pd.isnull(self.pfr)) or
